@@ -40,3 +40,58 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+[data-mantine-color-scheme] .mantine-Tabs-tab[data-active] {
+  background-color: var(--color-primary) !important;
+  color: white !important;
+}
+
+[data-mantine-color-scheme] .mantine-Tabs-tab:hover {
+  background-color: var(--color-highlight) !important;
+}
+
+.footer-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+}
+
+@media (max-width: 768px) {
+  .footer-content {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .footer-copyright {
+    order: 3;
+  }
+  
+  .footer-stars {
+    order: 2;
+    justify-content: center;
+  }
+}
+.footer-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+}
+
+@media (max-width: 768px) {
+  .footer-content {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .footer-copyright {
+    order: 3;
+  }
+  
+  .footer-stars {
+    order: 2;
+    justify-content: center;
+  }
+}

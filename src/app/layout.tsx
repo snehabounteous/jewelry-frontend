@@ -33,7 +33,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <MantineProvider>
-          <Navbar/>
+          <Navbar isLoggedIn={false} />
           {children}
           <Footer/>
         </MantineProvider>

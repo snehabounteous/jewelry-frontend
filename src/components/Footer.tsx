@@ -1,13 +1,22 @@
 "use client";
 
-import { Box, Container, Group, Center, Text, Title } from "@mantine/core";
+import { Box, Container, Group, Center, Text, Title, Stack } from "@mantine/core";
 import { Diamond, Star } from "lucide-react";
 
 export default function Footer() {
   return (
-    <Box style={{ background: 'var(--color-primary)' }} py="3rem">
+    <Box style={{ background: 'var(--color-primary)'}} py="3rem">
       <Container size="xl">
-        <Group justify="space-between" align="center">
+        <div 
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '1.5rem'
+          }}
+          className="footer-content"
+        >
           <Group gap="md">
             <Center
               style={{
@@ -31,16 +40,24 @@ export default function Footer() {
             </Title>
           </Group>
 
-          <Text size="sm" c="rgba(255, 255, 255, 0.6)" style={{ fontFamily: 'var(--font-body)' }}>
+          <Text 
+            size="sm" 
+            c="rgba(255, 255, 255, 0.6)" 
+            style={{ 
+              fontFamily: 'var(--font-body)',
+              order: 2
+            }}
+            className="footer-copyright"
+          >
             © 2024 Lumière. All rights reserved.
           </Text>
 
-          <Group gap="md">
+          <Group gap="md" className="footer-stars">
             {[...Array(5)].map((_, i) => (
               <Star key={i} size={16} fill="var(--color-accent)" color="var(--color-accent)" />
             ))}
           </Group>
-        </Group>
+        </div>
       </Container>
     </Box>
   );
