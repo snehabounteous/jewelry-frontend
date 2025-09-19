@@ -4,22 +4,19 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
-  --color-primary: #1C1C1C;   
+  --color-primary: #1C1C1C;
   --color-secondary: #8E8E8E;
-  --color-background: #F9F9F9; 
-  --color-highlight: #E5E5E5; 
-
-
-  --color-accent: #D4AF37;    
-
-  
+  --color-background: #F9F9F9;
+  --color-highlight: #E5E5E5;
+  --color-accent: #D4AF37;
   --color-text-dark: #1C1C1C;
   --color-text-muted: #8E8E8E;
   --color-text-light: #F9F9F9;
 
   --font-heading: 'Playfair Display', serif;
-  --font-body: 'Montserrat', sans-serif;
+  --font-body: 'Playfair Display', serif;
 }
+
 
 @theme inline {
   --color-background: var(--background);

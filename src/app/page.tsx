@@ -15,8 +15,6 @@ import {
 } from "@mantine/core";
 import { Star, ChevronRight, Play, Crown } from "lucide-react";
 
-
-
 const featuredProducts = [
   {
     id: 1,
@@ -53,20 +51,20 @@ const featuredProducts = [
 
 export default function HomePage() {
   return (
-    <Box style={{ background: 'linear-gradient(135deg, #f8fafc 0%, #ffffff 50%, #f1f5f9 100%)' }}>
+    <Box style={{ background: "linear-gradient(135deg, #f8fafc 0%, #ffffff 50%, #f1f5f9 100%)" }}>
       {/* Hero Section, Featured Products, Services, Testimonials, CTA */}
-      <Container size="xl" py="6rem">
+      <Container size="xl" py="6rem" component="section" aria-labelledby="featured-collection">
         <Stack gap="3rem" align="center">
           <Stack gap="md" align="center">
-            <Title order={2} size="3rem" fw={300} ta="center">
+            <Title id="featured-collection" order={1} size="3rem" fw={300} ta="center">
               Featured Collection
             </Title>
-            <Text size="lg" ta="center" maw={600}>
+            <Text size="lg" ta="center" maw={600} c="var(--color-text-dark)">
               Handpicked masterpieces that embody our commitment to excellence and timeless beauty
             </Text>
           </Stack>
 
-          <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} spacing="xl">
+          <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} spacing="xl" role="list">
             {featuredProducts.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}
