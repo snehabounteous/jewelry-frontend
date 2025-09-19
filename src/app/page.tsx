@@ -1,34 +1,78 @@
-"use client"
-import { useState } from 'react';
-import { Stepper, Button, Group } from '@mantine/core';
-export default function Home() {
-  
-    const [active, setActive] = useState(1);
-  const nextStep = () => setActive((current) => (current < 3 ? current + 1 : current));
-  const prevStep = () => setActive((current) => (current > 0 ? current - 1 : current));
+import ProductCard from "@/components/ProductCard";
+import {
+  Box,
+  Container,
+  Title,
+  Text,
+  Button,
+  Group,
+  Stack,
+  Grid,
+  Paper,
+  Center,
+  Badge,
+  SimpleGrid,
+} from "@mantine/core";
+import { Star, ChevronRight, Play, Crown } from "lucide-react";
 
+
+
+const featuredProducts = [
+  {
+    id: 1,
+    name: "Eternal Diamond Ring",
+    price: "$12,999",
+    image: "https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=400",
+    category: "Rings",
+    isNew: true,
+  },
+  {
+    id: 2,
+    name: "Royal Sapphire Necklace",
+    price: "$24,999",
+    image: "https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=400",
+    category: "Necklaces",
+    isBestseller: true,
+  },
+  {
+    id: 3,
+    name: "Golden Aurora Earrings",
+    price: "$8,499",
+    image: "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=400",
+    category: "Earrings",
+  },
+  {
+    id: 4,
+    name: "Platinum Heritage Watch",
+    price: "$45,999",
+    image: "https://images.unsplash.com/photo-1547996160-81dfa63595aa?w=400",
+    category: "Watches",
+    isExclusive: true,
+  },
+];
+
+export default function HomePage() {
   return (
-    <>
-      <Stepper active={active} onStepClick={setActive}>
-        <Stepper.Step label="First step" description="Create an account">
-          Step 1 content: Create an account
-        </Stepper.Step>
-        <Stepper.Step label="Second step" description="Verify email">
-          Step 2 content: Verify email
-        </Stepper.Step>
-        <Stepper.Step label="Final step" description="Get full access">
-          Step 3 content: Get full access
-        </Stepper.Step>
-        <Stepper.Completed>
-          Completed, click back button to get to previous step
-        </Stepper.Completed>
-      </Stepper>
+    <Box style={{ background: 'linear-gradient(135deg, #f8fafc 0%, #ffffff 50%, #f1f5f9 100%)' }}>
+      {/* Hero Section, Featured Products, Services, Testimonials, CTA */}
+      <Container size="xl" py="6rem">
+        <Stack gap="3rem" align="center">
+          <Stack gap="md" align="center">
+            <Title order={2} size="3rem" fw={300} ta="center">
+              Featured Collection
+            </Title>
+            <Text size="lg" ta="center" maw={600}>
+              Handpicked masterpieces that embody our commitment to excellence and timeless beauty
+            </Text>
+          </Stack>
 
-      <Group justify="center" mt="xl">
-        <Button variant="default" onClick={prevStep}>Back</Button>
-        <Button onClick={nextStep}>Next step</Button>
-      </Group>
-    </>
+          <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} spacing="xl">
+            {featuredProducts.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </SimpleGrid>
+        </Stack>
+      </Container>
+    </Box>
   );
-  
 }
