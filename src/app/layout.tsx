@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { MantineProvider } from "@mantine/core";
-import "@mantine/core/styles.css";
+import { Toaster } from "@/components/ui/sonner";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { UserProvider } from "@/context/UserContext";
@@ -26,12 +25,11 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
+interface RootLayoutProps {
   children: React.ReactNode;
-}>) {
-  
+}
+
+const RootLayout: React.FC<RootLayoutProps> = ({ children }) => {
   return (
     <html lang="en">
       <body
@@ -42,14 +40,17 @@ export default function RootLayout({
           minHeight: "100vh",
         }}
       >
-        <MantineProvider>
-          <UserProvider>
-            <Navbar />
-            <main style={{ flex: 1, paddingTop: "80px" }}>{children}</main>
-            <Footer />
-          </UserProvider>
-        </MantineProvider>
+        <UserProvider>
+          <Navbar />
+          <main style={{ flex: 1, paddingTop: "80px" }}>
+            {children}
+          </main>
+          <Footer />
+          <Toaster />
+        </UserProvider>
       </body>
     </html>
   );
-}
+};
+
+export default RootLayout;

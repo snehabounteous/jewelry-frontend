@@ -3,36 +3,18 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState, useRef, useEffect } from "react";
-import {
-  Box,
-  Container,
-  Title,
-  Group,
-  Anchor,
-  ActionIcon,
-  Paper,
-  Button,
-  Divider,
-  Stack,
-  Drawer,
-} from "@mantine/core";
-import { useDisclosure, useMediaQuery } from "@mantine/hooks";
 import { Search, Heart, ShoppingBag, User, Menu, X } from "lucide-react";
 import { useUser } from "@/context/UserContext";
-import { MantineProvider, useMantineTheme } from "@mantine/core";
 
 export default function Navbar() {
   const { user, setUser } = useUser();
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [mobileMenuOpened, { open: openMobileMenu, close: closeMobileMenu }] =
-    useDisclosure(false);
+  const [mobileMenuOpened, setMobileMenuOpened] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
 
   const isLoggedIn = !!user;
 
-  // Check for Mantine's `md` breakpoint (768px)
-  const theme = useMantineTheme();
-  const isDesktop = useMediaQuery(`(min-width: ${theme.breakpoints.md})`);
+  const navLinks = ["Collections", "About", "Services", "Contact"];
 
   // Close profile dropdown if clicked outside
   useEffect(() => {
@@ -45,260 +27,169 @@ export default function Navbar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [dropdownOpen]);
 
-  // Automatically close the mobile menu if the screen size changes to desktop
-  useEffect(() => {
-    if (isDesktop && mobileMenuOpened) {
-      closeMobileMenu();
-    }
-  }, [isDesktop, mobileMenuOpened, closeMobileMenu]);
-
   // Logout function
   const handleLogout = () => {
     setUser(null);
     setDropdownOpen(false);
-    closeMobileMenu();
+    setMobileMenuOpened(false);
   };
-
-  const navLinks = ["Collections", "About", "Services", "Contact"];
 
   return (
     <>
-      <nav
-        style={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          right: 0,
-          zIndex: 100,
-          background: "rgba(255, 255, 255, 0.95)",
-          backdropFilter: "blur(20px)",
-          borderBottom: "1px solid var(--color-highlight)",
-        }}
-      >
-        <Container size="xl" py={16}>
-          <Group justify="space-between" align="center" gap="lg">
-            {/* Logo */}
-            <Group gap="xs">
-              <Image
-                src="/icon.svg"
-                alt="LUMIÈRE Logo"
-                width={40}
-                height={40}
-                priority
-              />
-              <Title
-                order={3}
-                style={{
-                  fontFamily: "var(--font-heading)",
-                  color: "var(--color-primary)",
-                }}
-              >
-                LUMIÈRE
-              </Title>
-            </Group>
+      {/* Navbar */}
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-lg border-b border-[var(--color-highlight)]">
+        <div className="max-w-screen-xl mx-auto py-4 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
+          {/* Logo */}
+          <div className="flex items-center gap-2">
+            <Image src="/icon.svg" alt="LUMIÈRE Logo" width={40} height={40} priority />
+            <h3 className="text-[var(--color-primary)] font-heading text-xl">LUMIÈRE</h3>
+          </div>
 
-            {/* Desktop Links */}
-            <Group
-              gap="lg"
-              className="hidden md:flex"
-              component="ul"
-              role="menubar"
-            >
-              {navLinks.map((item) => (
-                <li key={item} role="none">
-                  <Anchor
-                    component={Link}
-                    href="#"
-                    role="menuitem"
-                    style={{
-                      color: "var(--color-primary)",
-                      fontFamily: "var(--font-body)",
-                      fontWeight: 500,
-                    }}
-                  >
-                    {item}
-                  </Anchor>
-                </li>
-              ))}
-            </Group>
-
-            {/* Icons & Profile */}
-            <Group gap="sm" style={{ position: "relative" }}>
-              <ActionIcon variant="subtle" size="lg" aria-label="Search">
-                <Search size={20} color="var(--color-primary)" />
-              </ActionIcon>
-
-              <ActionIcon variant="subtle" size="lg" aria-label="Wishlist">
-                <Heart size={20} color="var(--color-primary)" />
-              </ActionIcon>
-
-              <ActionIcon variant="subtle" size="lg" aria-label="Shopping Bag">
-                <ShoppingBag size={20} color="var(--color-primary)" />
-              </ActionIcon>
-
-              <Box>
-                <Button
-                  color="black"
-                  onClick={() => setDropdownOpen((o) => !o)}
-                  rightSection={<User size={18} />}
-                  size="compact-md"
+          {/* Desktop Links */}
+          <ul className="hidden md:flex gap-8" role="menubar">
+            {navLinks.map((item) => (
+              <li key={item} role="none">
+                <Link
+                  href="#"
+                  className="text-[var(--color-primary)] font-body font-medium"
+                  role="menuitem"
                 >
-                  {isLoggedIn ? `Hi, ${user.name}` : "Login"}
-                </Button>
+                  {item}
+                </Link>
+              </li>
+            ))}
+          </ul>
 
-                {dropdownOpen && isLoggedIn && (
-                  <Paper
-                    ref={menuRef}
-                    shadow="md"
-                    p="sm"
-                    style={{
-                      position: "absolute",
-                      top: 40,
-                      right: 0,
-                      width: 220,
-                      borderRadius: 8,
-                      background: "var(--color-background)",
-                      zIndex: 101,
-                    }}
-                  >
-                    <Stack gap="xs">
-                      <Anchor
-                        href="#"
-                        style={{ color: "var(--color-primary)" }}
-                      >
-                        My Account
-                      </Anchor>
-                      <Anchor
-                        href="#"
-                        style={{ color: "var(--color-primary)" }}
-                      >
-                        Wishlist
-                      </Anchor>
-                      <Anchor
-                        href="#"
-                        style={{ color: "var(--color-primary)" }}
-                      >
-                        Orders & Returns
-                      </Anchor>
-                      <Divider />
-                      <Button
-                        fullWidth
-                        variant="light"
-                        style={{ color: "var(--color-primary)" }}
-                        onClick={handleLogout}
-                      >
-                        Logout
-                      </Button>
-                    </Stack>
-                  </Paper>
-                )}
-              </Box>
+          {/* Icons & Profile */}
+          <div className="flex items-center gap-2 relative">
+            <button aria-label="Search" className="p-2 rounded-full hover:bg-gray-100">
+              <Search size={20} color="var(--color-primary)" />
+            </button>
+            <button aria-label="Wishlist" className="p-2 rounded-full hover:bg-gray-100">
+              <Heart size={20} color="var(--color-primary)" />
+            </button>
+            <button aria-label="Shopping Bag" className="p-2 rounded-full hover:bg-gray-100">
+              <ShoppingBag size={20} color="var(--color-primary)" />
+            </button>
 
-              <ActionIcon
-                variant="subtle"
-                size="lg"
-                className="md:hidden"
-                onClick={openMobileMenu}
-                aria-label="Open mobile menu"
+            {/* Profile Dropdown */}
+            <div className="relative">
+              <button
+                onClick={() => setDropdownOpen((o) => !o)}
+                className="flex items-center gap-2 px-3 py-1 border rounded-md"
               >
-                <Menu size={20} color="var(--color-primary)" />
-              </ActionIcon>
-            </Group>
-          </Group>
-        </Container>
+                {isLoggedIn ? `Hi, ${user.name}` : "Login"}
+                <User size={18} />
+              </button>
+
+              {dropdownOpen && isLoggedIn && (
+                <div
+                  ref={menuRef}
+                  className="absolute right-0 mt-2 w-56 bg-[var(--color-background)] shadow-md rounded-md z-50 p-3"
+                >
+                  <div className="flex flex-col gap-2">
+                    <Link href="#" className="text-[var(--color-primary)]">
+                      My Account
+                    </Link>
+                    <Link href="#" className="text-[var(--color-primary)]">
+                      Wishlist
+                    </Link>
+                    <Link href="#" className="text-[var(--color-primary)]">
+                      Orders & Returns
+                    </Link>
+                    <hr className="my-2 border-[var(--color-highlight)]" />
+                    <button
+                      onClick={handleLogout}
+                      className="w-full text-[var(--color-primary)] border px-2 py-1 rounded-md hover:bg-gray-100"
+                    >
+                      Logout
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Mobile Menu Button */}
+            <button
+              className="md:hidden p-2 rounded-full hover:bg-gray-100"
+              onClick={() => setMobileMenuOpened(true)}
+              aria-label="Open mobile menu"
+            >
+              <Menu size={20} color="var(--color-primary)" />
+            </button>
+          </div>
+        </div>
       </nav>
 
-      <Drawer
-        opened={mobileMenuOpened}
-        onClose={closeMobileMenu}
-        position="right"
-        size="xs"
-        withCloseButton={false}
-        overlayProps={{ opacity: 0.5, blur: 4 }}
-        style={{
-          background: "var(--color-background)",
-        }}
-      >
-        <Stack gap="xl" p="md">
-          <Group justify="space-between" align="center" mt="sm">
-            <Anchor component={Link} href="#">
-              <Group gap="xs">
-                <Image
-                  src="/icon.svg"
-                  alt="LUMIÈRE Logo"
-                  width={30}
-                  height={30}
-                />
-                <Title order={4} style={{ fontFamily: "var(--font-heading)" }}>
-                  LUMIÈRE
-                </Title>
-              </Group>
-            </Anchor>
-            <ActionIcon
-              variant="subtle"
-              size="lg"
-              onClick={closeMobileMenu}
-              aria-label="Close mobile menu"
-            >
-              <X size={20} color="var(--color-primary)" />
-            </ActionIcon>
-          </Group>
-
-          <Divider />
-
-          {navLinks.map((item) => (
-            <Anchor
-              key={item}
-              component={Link}
-              href="#"
-              onClick={closeMobileMenu}
-              style={{
-                color: "var(--color-primary)",
-                fontFamily: "var(--font-body)",
-                fontWeight: 500,
-                fontSize: "1.2rem",
-              }}
-            >
-              {item}
-            </Anchor>
-          ))}
-
-          <Divider />
-
-          {isLoggedIn ? (
-            <Stack>
-              <Anchor href="#" style={{ color: "var(--color-primary)" }}>
-                My Account
-              </Anchor>
-              <Anchor href="#" style={{ color: "var(--color-primary)" }}>
-                Wishlist
-              </Anchor>
-              <Anchor href="#" style={{ color: "var(--color-primary)" }}>
-                Orders & Returns
-              </Anchor>
-              <Button
-                fullWidth
-                variant="light"
-                style={{ color: "var(--color-primary)" }}
-                onClick={handleLogout}
+      {/* Mobile Drawer */}
+      {mobileMenuOpened && (
+        <div className="fixed inset-0 z-40 flex">
+          <div
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={() => setMobileMenuOpened(false)}
+          />
+          <div className="ml-auto w-64 bg-[var(--color-background)] h-full p-4 flex flex-col gap-6">
+            <div className="flex justify-between items-center">
+              <Link href="#" className="flex items-center gap-2">
+                <Image src="/icon.svg" alt="LUMIÈRE Logo" width={30} height={30} />
+                <h4 className="font-heading text-lg">LUMIÈRE</h4>
+              </Link>
+              <button
+                className="p-2 rounded-full hover:bg-gray-100"
+                onClick={() => setMobileMenuOpened(false)}
+                aria-label="Close mobile menu"
               >
-                Logout
-              </Button>
-            </Stack>
-          ) : (
-            <Button
-              fullWidth
-              variant="light"
-              style={{ color: "var(--color-primary)" }}
-              onClick={closeMobileMenu}
-              component={Link}
-              href="#"
-            >
-              Login / Sign Up
-            </Button>
-          )}
-        </Stack>
-      </Drawer>
+                <X size={20} color="var(--color-primary)" />
+              </button>
+            </div>
+
+            <hr className="border-[var(--color-highlight)]" />
+
+            <div className="flex flex-col gap-3">
+              {navLinks.map((item) => (
+                <Link
+                  key={item}
+                  href="#"
+                  onClick={() => setMobileMenuOpened(false)}
+                  className="text-[var(--color-primary)] font-body font-medium text-lg"
+                >
+                  {item}
+                </Link>
+              ))}
+            </div>
+
+            <hr className="border-[var(--color-highlight)]" />
+
+            {isLoggedIn ? (
+              <div className="flex flex-col gap-2">
+                <Link href="#" className="text-[var(--color-primary)]">
+                  My Account
+                </Link>
+                <Link href="#" className="text-[var(--color-primary)]">
+                  Wishlist
+                </Link>
+                <Link href="#" className="text-[var(--color-primary)]">
+                  Orders & Returns
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="w-full text-[var(--color-primary)] border px-2 py-1 rounded-md hover:bg-gray-100"
+                >
+                  Logout
+                </button>
+              </div>
+            ) : (
+              <Link
+                href="#"
+                onClick={() => setMobileMenuOpened(false)}
+                className="w-full text-center text-[var(--color-primary)] border px-2 py-2 rounded-md hover:bg-gray-100"
+              >
+                Login / Sign Up
+              </Link>
+            )}
+          </div>
+        </div>
+      )}
     </>
   );
 }

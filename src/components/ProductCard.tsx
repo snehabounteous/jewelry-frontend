@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Card, Image, Stack, Text, Title, Badge, ActionIcon } from "@mantine/core";
+import Image from "next/image";
 import { Heart } from "lucide-react";
 
 interface Product {
@@ -20,100 +20,76 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ product }: ProductCardProps) {
+  // Determine which badge to show (priority: New > Bestseller > Exclusive)
+  let badgeText = "";
+  let badgeColor = "";
+  if (product.isNew) {
+    badgeText = "New";
+    badgeColor = "var(--color-accent)";
+  } else if (product.isBestseller) {
+    badgeText = "Bestseller";
+    badgeColor = "#e11d48";
+  } else if (product.isExclusive) {
+    badgeText = "Exclusive";
+    badgeColor = "#7c3aed";
+  }
+
   return (
-    <Link href={`/products/${product.id}`} style={{ textDecoration: "none", color: "inherit" }}>
-      <Card
-        radius="xl"
-        style={{
-          background: "rgba(255, 255, 255, 0.8)",
-          backdropFilter: "blur(20px)",
-          border: "1px solid rgba(255, 255, 255, 0.2)",
-          transition: "all 0.3s ease",
-          cursor: "pointer",
-        }}
-        styles={{
-          root: {
-            "&:hover": {
-              transform: "translateY(-8px)",
-              boxShadow: "0 20px 60px rgba(0, 0, 0, 0.15)",
-            },
-          },
-        }}
+    <Link href={`/products/${product.id}`} className="text-inherit no-underline">
+      <div
+        className="relative rounded-xl bg-white/80 backdrop-blur-[20px] border border-white/20 cursor-pointer transition-all duration-300 hover:-translate-y-2.5 hover:shadow-[0_20px_60px_rgba(0,0,0,0.15)]"
       >
-        <Card.Section style={{ position: "relative" }}>
+        {/* Image Section */}
+        <div className="relative">
           <Image
             src={product.image}
             alt={product.name}
+            width={400}
             height={250}
-            style={{ objectFit: "cover" }}
+            className="object-cover w-full h-[250px] rounded-t-xl"
           />
-          {product.isNew && (
-            <Badge
-              variant="filled"
-              style={{
-                position: "absolute",
-                top: 12,
-                left: 12,
-                background: "var(--color-accent)",
-              }}
+
+          {/* Badge */}
+          {badgeText && (
+            <span
+              className="absolute top-3 left-3 px-2 py-1 rounded text-white text-xs font-semibold"
+              style={{ background: badgeColor }}
             >
-              New
-            </Badge>
+              {badgeText}
+            </span>
           )}
-          {product.isBestseller && (
-            <Badge
-              variant="filled"
-              style={{
-                position: "absolute",
-                top: 12,
-                left: 12,
-                background: "#e11d48",
-              }}
-            >
-              Bestseller
-            </Badge>
-          )}
-          {product.isExclusive && (
-            <Badge
-              variant="filled"
-              style={{
-                position: "absolute",
-                top: 12,
-                left: 12,
-                background: "#7c3aed",
-              }}
-            >
-              Exclusive
-            </Badge>
-          )}
-          <ActionIcon
-            variant="filled"
-            size="lg"
-            radius="xl"
-            style={{
-              position: "absolute",
-              top: 12,
-              right: 12,
-              background: "rgba(255, 255, 255, 0.9)",
-              color: "var(--color-primary)",
-            }}
+
+          {/* Heart Icon */}
+          <div
+            className="absolute top-3 right-3 w-8 h-8 rounded-full flex items-center justify-center"
+            style={{ background: "rgba(255, 255, 255, 0.9)", color: "var(--color-primary)" }}
           >
             <Heart size={18} />
-          </ActionIcon>
-        </Card.Section>
+          </div>
+        </div>
 
-        <Stack gap="md" p="md">
-          <Text size="sm" c="var(--color-accent)" fw={500} style={{ fontFamily: "var(--font-body)" }}>
+        {/* Text Section */}
+        <div className="flex flex-col gap-3 p-4">
+          <span
+            className="text-[var(--color-accent)] text-sm font-medium"
+            style={{ fontFamily: "var(--font-body)" }}
+          >
             {product.category}
-          </Text>
-          <Title order={4} fw={400} style={{ fontFamily: "var(--font-heading)" }}>
+          </span>
+          <h4
+            className="text-base font-normal"
+            style={{ fontFamily: "var(--font-heading)" }}
+          >
             {product.name}
-          </Title>
-          <Text size="lg" fw={600} c="var(--color-accent)" style={{ fontFamily: "var(--font-body)" }}>
+          </h4>
+          <span
+            className="text-[var(--color-accent)] text-lg font-semibold"
+            style={{ fontFamily: "var(--font-body)" }}
+          >
             {product.price}
-          </Text>
-        </Stack>
-      </Card>
+          </span>
+        </div>
+      </div>
     </Link>
   );
 }
