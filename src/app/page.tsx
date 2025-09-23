@@ -1,8 +1,5 @@
 import ProductCard from "@/components/ProductCard";
-import { Badge } from "..//components/ui/badge";
-import { Button } from "..//components/ui/button";
-import { Card, CardContent } from "../components/ui/card";
-import { Star, ChevronRight, Play, Crown } from "lucide-react";
+
 
 const featuredProducts = [
   {

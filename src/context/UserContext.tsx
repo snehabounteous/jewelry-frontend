@@ -1,7 +1,7 @@
 "use client";
 
+import { clientApi } from "@/utils/axios";
 import React, { createContext, useState, useContext, ReactNode, useEffect } from "react";
-import api from "../utils/axios"
 
 interface User {
   id: string;
@@ -29,7 +29,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const res = await api.get("/auth/me");
+        const res = await clientApi.get("/auth/me");
         setUser(res.data.user);
       } catch {
         setUser(null);

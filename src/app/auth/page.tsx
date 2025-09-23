@@ -11,9 +11,13 @@ import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { Star, Diamond, Sparkles, Eye, EyeOff, Loader2 } from "lucide-react";
 import * as yup from "yup";
-import api from "@/utils/axios";
 import { useUser } from "@/context/UserContext";
 import { useRouter } from "next/navigation";
+import { clientApi } from "@/utils/axios";
+
+interface ApiError {
+  message: string;
+}
 
 const loginSchema = yup.object().shape({
   email: yup.string().email("Invalid email").required("Email is required"),
@@ -56,14 +60,14 @@ const AuthPage: React.FC = () => {
         ? { name: values.name!, email: values.email, password: values.password }
         : { email: values.email, password: values.password };
 
-      const response = await api.post(endpoint, payload);
+      const response = await clientApi.post(endpoint, payload);
 
       if (!isRegister) {
         localStorage.setItem("accessToken", response.data.accessToken);
         localStorage.setItem("refreshToken", response.data.refreshToken);
 
-        const userResponse = await api.get("/auth/me");
-        const user = userResponse.data;
+        const userResponse = await clientApi.get("/auth/me");
+        const user = userResponse.data.user;
 
         setUser(user);
 
@@ -75,8 +79,9 @@ const AuthPage: React.FC = () => {
       }
 
       reset();
-    } catch (error: any) {
-      toast.error(error.response?.data?.error || error.message);
+    } catch (error: unknown) {
+      const errorMessage = (error as ApiError).message || "An error occurred";
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }

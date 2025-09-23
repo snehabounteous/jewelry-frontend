@@ -22,7 +22,6 @@ import {
   Truck, 
   Shield, 
   Gem,
-  Ruler,
   Star,
   Minus,
   Plus

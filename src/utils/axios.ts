@@ -1,27 +1,44 @@
 import axios from "axios";
 
-const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api/v1/auth/register",
+const baseURL = `${process.env.NEXT_PUBLIC_API_URL}/api/v1` || "http://10.106.24.83:4000/api/v1";
+
+
+export const clientApi = axios.create({
+  baseURL,
   headers: { "Content-Type": "application/json" },
-  withCredentials: true,
+  withCredentials: true, 
 });
 
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("accessToken");
-  if (token && config.headers) config.headers["Authorization"] = `Bearer ${token}`;
+
+export const serverApi = axios.create({
+  baseURL,
+  headers: { "Content-Type": "application/json" },
+  
+});
+
+
+clientApi.interceptors.request.use((config) => {
+  if (typeof window !== "undefined") {
+    const token = localStorage.getItem("accessToken");
+    if (token && config.headers) {
+      config.headers["Authorization"] = `Bearer ${token}`;
+    }
+  }
   return config;
 });
 
-api.interceptors.response.use(
+clientApi.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
+
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
       try {
         const refreshToken = localStorage.getItem("refreshToken");
+
         const res = await axios.post(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/refresh-token`,
+          `${baseURL}/auth/refresh-token`,
           { token: refreshToken },
           { withCredentials: true }
         );
@@ -30,13 +47,13 @@ api.interceptors.response.use(
         localStorage.setItem("accessToken", accessToken);
 
         originalRequest.headers["Authorization"] = `Bearer ${accessToken}`;
-        return api(originalRequest);
-      } catch {
-        return Promise.reject(error);
+        return clientApi(originalRequest);
+      } catch (err) {
+        console.error("Refresh token failed:", err);
+        return Promise.reject(err);
       }
     }
+
     return Promise.reject(error);
   }
 );
-
-export default api;
