@@ -7,7 +7,7 @@ interface ApiError {
 }
 
 export const metadata: Metadata = {
-  title: "Earrings Collection | My Store",
+  title: "Product Collection | My Store",
   description: "Discover our exquisite collection of handcrafted earrings.",
 };
 
@@ -40,7 +40,7 @@ export default async function PLPPage() {
   const products = await getProducts();
 
   const transformed = products.map((p) => ({
-    id: Number(p.id),
+    id: p.id, // keep as string
     name: p.name,
     price: Number(p.price),
     originalPrice: Number(p.price) + 500,
@@ -55,10 +55,7 @@ export default async function PLPPage() {
       <div className="max-w-7xl mx-auto px-6 py-12">
         {/* Breadcrumb */}
         <nav className="text-sm mb-6 text-[var(--color-secondary)]">
-          Home /{" "}
-          <span className="font-medium text-[var(--color-foreground)]">
-            Earrings
-          </span>
+          Home / <span className="font-medium text-[var(--color-foreground)]">Products</span>
         </nav>
 
         {/* Header */}
@@ -67,14 +64,13 @@ export default async function PLPPage() {
             className="text-5xl font-bold tracking-tight"
             style={{ fontFamily: "var(--font-heading)" }}
           >
-            Earrings Collection
+            Collection
           </h1>
           <p
             className="text-lg text-[var(--color-secondary)] max-w-2xl mx-auto"
             style={{ fontFamily: "var(--font-body)" }}
           >
-            Discover our luxurious, handcrafted earrings — timeless elegance
-            for every occasion.
+            Discover our luxurious, handcrafted earrings — timeless elegance for every occasion.
           </p>
           <div className="w-24 h-1 mx-auto bg-[var(--color-accent)] rounded-full" />
         </header>
