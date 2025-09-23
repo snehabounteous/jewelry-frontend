@@ -7,7 +7,6 @@ import Footer from "@/components/Footer";
 import { UserProvider } from "@/context/UserContext";
 import CartProvider from "@/components/cart/CartProvider";
 
-
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -36,22 +35,16 @@ const RootLayout: React.FC<RootLayoutProps> = ({ children }) => {
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          minHeight: "100vh",
-        }}
+        style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}
       >
-        <CartProvider>
         <UserProvider>
-          <Navbar />
-          <main style={{ flex: 1, paddingTop: "80px" }}>
-            {children}
-          </main>
-          <Footer />
-          <Toaster />
+          <CartProvider>
+            <Navbar />
+            <main style={{ flex: 1, paddingTop: "80px" }}>{children}</main>
+            <Footer />
+            <Toaster />
+          </CartProvider>
         </UserProvider>
-        </CartProvider>
       </body>
     </html>
   );
