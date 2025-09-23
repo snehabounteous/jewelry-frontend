@@ -65,10 +65,10 @@ const CheckoutPage = () => {
         shippingCost: shippingCost,
       };
 
-      await clientApi.post("/order/place", orderDetails);
+      const { data }=await clientApi.post("/order/place", orderDetails);
       toast.success("Order placed successfully!");
       await clearCart();
-      router.push("/orders");
+      router.push(`/order-success?orderId=${data.order_id}&total=${data.total_amount}`);
     } catch (err) {
       console.error("Error placing order:", err);
       toast.error("Failed to place order");

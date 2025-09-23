@@ -11,6 +11,9 @@ export const metadata: Metadata = {
   description: "Discover our exquisite collection of handcrafted earrings.",
 };
 
+// ⏳ ISR setting
+export const revalidate = 60;
+
 export type Product = {
   id: string;
   name: string;
@@ -25,9 +28,7 @@ export type Product = {
 
 async function getProducts(): Promise<Product[]> {
   try {
-    console.log("Hitting URL:", `${process.env.NEXT_PUBLIC_API_URL}/products`);
     const res = await serverApi.get("/products");
-    console.log("Fetched products:", res.data);
     return res.data;
   } catch (error: unknown) {
     console.error("Error fetching products:", (error as ApiError).message);
@@ -54,7 +55,10 @@ export default async function PLPPage() {
       <div className="max-w-7xl mx-auto px-6 py-12">
         {/* Breadcrumb */}
         <nav className="text-sm mb-6 text-[var(--color-secondary)]">
-          Home / <span className="font-medium text-[var(--color-foreground)]">Earrings</span>
+          Home /{" "}
+          <span className="font-medium text-[var(--color-foreground)]">
+            Earrings
+          </span>
         </nav>
 
         {/* Header */}
@@ -69,7 +73,8 @@ export default async function PLPPage() {
             className="text-lg text-[var(--color-secondary)] max-w-2xl mx-auto"
             style={{ fontFamily: "var(--font-body)" }}
           >
-            Discover our luxurious, handcrafted earrings — timeless elegance for every occasion.
+            Discover our luxurious, handcrafted earrings — timeless elegance
+            for every occasion.
           </p>
           <div className="w-24 h-1 mx-auto bg-[var(--color-accent)] rounded-full" />
         </header>

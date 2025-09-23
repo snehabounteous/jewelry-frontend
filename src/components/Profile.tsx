@@ -11,15 +11,13 @@ import {
   DropdownMenuPortal,
 } from "@/components/ui/dropdown-menu";
 import { User } from "lucide-react";
-import { useUser } from "@/context/UserContext";
+import { useLogout } from "@/hooks/useLogout";
+import { useUserStore } from "@/store/useUserStore";
 
 export default function Profile() {
-  const { user, setUser } = useUser();
+  const { user } = useUserStore();
+  const logout = useLogout();
   const isLoggedIn = !!user;
-
-  const handleLogout = () => {
-    setUser(null);
-  };
 
   return (
     <DropdownMenu>
@@ -72,7 +70,7 @@ export default function Profile() {
               <DropdownMenuSeparator />
 
               <div className="p-2">
-                <Button className="w-full" onClick={handleLogout}>
+                <Button className="w-full" onClick={logout}>
                   Logout
                 </Button>
               </div>
