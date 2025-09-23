@@ -1,11 +1,10 @@
 "use client";
 
-import { Box } from "@mantine/core";
-
 export default function FloatingElements() {
   return (
     <>
-      <Box
+      {/* Floating circles */}
+      <div
         style={{
           position: 'absolute',
           top: '20%',
@@ -18,7 +17,7 @@ export default function FloatingElements() {
           animation: 'float 6s ease-in-out infinite',
         }}
       />
-      <Box
+      <div
         style={{
           position: 'absolute',
           top: '60%',
@@ -31,7 +30,7 @@ export default function FloatingElements() {
           animation: 'float 8s ease-in-out infinite 2s',
         }}
       />
-      <Box
+      <div
         style={{
           position: 'absolute',
           bottom: '30%',
@@ -44,7 +43,8 @@ export default function FloatingElements() {
           animation: 'float 7s ease-in-out infinite 4s',
         }}
       />
-      
+
+      {/* Floating animation */}
       <style jsx>{`
         @keyframes float {
           0%, 100% {

@@ -1,20 +1,4 @@
 import ProductCard from "@/components/ProductCard";
-import {
-  Box,
-  Container,
-  Title,
-  Text,
-  Button,
-  Group,
-  Stack,
-  Grid,
-  Paper,
-  Center,
-  Badge,
-  SimpleGrid,
-} from "@mantine/core";
-import { Star, ChevronRight, Play, Crown } from "lucide-react";
-
 
 
 const featuredProducts = [
@@ -53,26 +37,35 @@ const featuredProducts = [
 
 export default function HomePage() {
   return (
-    <Box style={{ background: 'linear-gradient(135deg, #f8fafc 0%, #ffffff 50%, #f1f5f9 100%)' }}>
+    <div className="bg-gradient-to-br from-slate-50 via-white to-slate-100 min-h-screen">
       {/* Hero Section, Featured Products, Services, Testimonials, CTA */}
-      <Container size="xl" py="6rem">
-        <Stack gap="3rem" align="center">
-          <Stack gap="md" align="center">
-            <Title order={2} size="3rem" fw={300} ta="center">
+      <section 
+        className="max-w-7xl mx-auto py-24 px-4 sm:px-6 lg:px-8" 
+        aria-labelledby="featured-collection"
+      >
+        <div className="flex flex-col items-center gap-12">
+          <div className="flex flex-col items-center gap-4 text-center">
+            <h1 
+              id="featured-collection" 
+              className="text-5xl font-light text-gray-900 tracking-tight"
+            >
               Featured Collection
-            </Title>
-            <Text size="lg" ta="center" maw={600}>
+            </h1>
+            <p className="text-lg text-gray-700 max-w-2xl leading-relaxed">
               Handpicked masterpieces that embody our commitment to excellence and timeless beauty
-            </Text>
-          </Stack>
+            </p>
+          </div>
 
-          <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} spacing="xl">
+          <div 
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 w-full"
+            role="list"
+          >
             {featuredProducts.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}
-          </SimpleGrid>
-        </Stack>
-      </Container>
-    </Box>
+          </div>
+        </div>
+      </section>
+    </div>
   );
 }
