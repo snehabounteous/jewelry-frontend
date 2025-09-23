@@ -28,7 +28,9 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 
+
 // Enhanced product data
+
 const products = [
   {
     id: 1,
@@ -73,6 +75,7 @@ const products = [
   },
   // Add other products...
 ];
+
 
 const StarRating: React.FC<{ rating: number; size?: number }> = ({ rating, size = 16 }) => {
   return (
@@ -344,6 +347,7 @@ const ProductDetailsPage: React.FC = () => {
           {/* Action Buttons */}
           <div className="flex items-center space-x-3 mt-6">
             <Button
+            
               size="lg"
               disabled={!selectedSize || !selectedMaterial}
               className="flex-1 h-12 text-white font-medium"

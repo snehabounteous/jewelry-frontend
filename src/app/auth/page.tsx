@@ -93,7 +93,7 @@ const AuthPage: React.FC = () => {
   };
 
   return (
-    <div 
+    <div
       className="relative flex items-center justify-center"
       style={{
         minHeight: "100vh",

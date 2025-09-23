@@ -2,41 +2,16 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useState, useRef, useEffect } from "react";
-import { Search, Heart, ShoppingBag, User, Menu, X } from "lucide-react";
-import { useUser } from "@/context/UserContext";
+import { Search, Heart, ShoppingBag, Menu, X } from "lucide-react";
+import { useState } from "react";
+import Profile from "./Profile";
 
 export default function Navbar() {
-  const { user, setUser } = useUser();
-  const [dropdownOpen, setDropdownOpen] = useState(false);
   const [mobileMenuOpened, setMobileMenuOpened] = useState(false);
-  const menuRef = useRef<HTMLDivElement | null>(null);
-
-  const isLoggedIn = !!user;
-
   const navLinks = ["Collections", "About", "Services", "Contact"];
-
-  // Close profile dropdown if clicked outside
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setDropdownOpen(false);
-      }
-    }
-    if (dropdownOpen) document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [dropdownOpen]);
-
-  // Logout function
-  const handleLogout = () => {
-    setUser(null);
-    setDropdownOpen(false);
-    setMobileMenuOpened(false);
-  };
 
   return (
     <>
-      {/* Navbar */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-lg border-b border-[var(--color-highlight)]">
         <div className="max-w-screen-xl mx-auto py-4 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
           {/* Logo */}
@@ -46,13 +21,12 @@ export default function Navbar() {
           </div>
 
           {/* Desktop Links */}
-          <ul className="hidden md:flex gap-8" role="menubar">
+          <ul className="hidden md:flex gap-8">
             {navLinks.map((item) => (
-              <li key={item} role="none">
+              <li key={item}>
                 <Link
                   href="#"
                   className="text-[var(--color-primary)] font-body font-medium"
-                  role="menuitem"
                 >
                   {item}
                 </Link>
@@ -61,7 +35,7 @@ export default function Navbar() {
           </ul>
 
           {/* Icons & Profile */}
-          <div className="flex items-center gap-2 relative">
+          <div className="flex items-center gap-3">
             <button aria-label="Search" className="p-2 rounded-full hover:bg-gray-100">
               <Search size={20} color="var(--color-primary)" />
             </button>
@@ -72,44 +46,10 @@ export default function Navbar() {
               <ShoppingBag size={20} color="var(--color-primary)" />
             </button>
 
-            {/* Profile Dropdown */}
-            <div className="relative">
-              <button
-                onClick={() => setDropdownOpen((o) => !o)}
-                className="flex items-center gap-2 px-3 py-1 border rounded-md"
-              >
-                {isLoggedIn ? `Hi, ${user.name}` : "Login"}
-                <User size={18} />
-              </button>
+            {/* Profile dropdown from shadcn */}
+            <Profile />
 
-              {dropdownOpen && isLoggedIn && (
-                <div
-                  ref={menuRef}
-                  className="absolute right-0 mt-2 w-56 bg-[var(--color-background)] shadow-md rounded-md z-50 p-3"
-                >
-                  <div className="flex flex-col gap-2">
-                    <Link href="#" className="text-[var(--color-primary)]">
-                      My Account
-                    </Link>
-                    <Link href="#" className="text-[var(--color-primary)]">
-                      Wishlist
-                    </Link>
-                    <Link href="#" className="text-[var(--color-primary)]">
-                      Orders & Returns
-                    </Link>
-                    <hr className="my-2 border-[var(--color-highlight)]" />
-                    <button
-                      onClick={handleLogout}
-                      className="w-full text-[var(--color-primary)] border px-2 py-1 rounded-md hover:bg-gray-100"
-                    >
-                      Logout
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Mobile Menu Button */}
+            {/* Mobile menu button */}
             <button
               className="md:hidden p-2 rounded-full hover:bg-gray-100"
               onClick={() => setMobileMenuOpened(true)}
@@ -157,36 +97,6 @@ export default function Navbar() {
                 </Link>
               ))}
             </div>
-
-            <hr className="border-[var(--color-highlight)]" />
-
-            {isLoggedIn ? (
-              <div className="flex flex-col gap-2">
-                <Link href="#" className="text-[var(--color-primary)]">
-                  My Account
-                </Link>
-                <Link href="#" className="text-[var(--color-primary)]">
-                  Wishlist
-                </Link>
-                <Link href="#" className="text-[var(--color-primary)]">
-                  Orders & Returns
-                </Link>
-                <button
-                  onClick={handleLogout}
-                  className="w-full text-[var(--color-primary)] border px-2 py-1 rounded-md hover:bg-gray-100"
-                >
-                  Logout
-                </button>
-              </div>
-            ) : (
-              <Link
-                href="#"
-                onClick={() => setMobileMenuOpened(false)}
-                className="w-full text-center text-[var(--color-primary)] border px-2 py-2 rounded-md hover:bg-gray-100"
-              >
-                Login / Sign Up
-              </Link>
-            )}
           </div>
         </div>
       )}
