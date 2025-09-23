@@ -14,6 +14,7 @@ import * as yup from "yup";
 import api from "@/utils/axios";
 import { useUser } from "@/context/UserContext";
 import { useRouter } from "next/navigation";
+import { AxiosError } from "axios";
 
 const loginSchema = yup.object().shape({
   email: yup.string().email("Invalid email").required("Email is required"),
@@ -75,8 +76,9 @@ const AuthPage: React.FC = () => {
       }
 
       reset();
-    } catch (error: any) {
-      toast.error(error.response?.data?.error || error.message);
+    } catch (error) {
+      const err = error as AxiosError<{ error: string }>;
+      toast.error(err.response?.data?.error || err.message);
     } finally {
       setIsLoading(false);
     }
@@ -88,7 +90,7 @@ const AuthPage: React.FC = () => {
   };
 
   return (
-    <div 
+    <div
       className="relative flex items-center justify-center"
       style={{
         minHeight: "100vh",
