@@ -1,112 +1,50 @@
 "use client";
 
-import { useCart } from "@/components/cart/CartProvider";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from "@/components/ui/select";
+import { useCart } from "@/store/useCart";
+import { Select } from "@radix-ui/react-select";
 import Image from "next/image";
-import { useEffect, useState } from "react";
-import { clientApi } from "@/utils/axios";
-
-interface CategoryMap {
-  [key: string]: string;
-}
+import { useEffect } from "react";
 
 export default function CartPage() {
-  const { cart, updateQuantity, removeFromCart } = useCart();
-  const [categories, setCategories] = useState<CategoryMap>({});
+  const { cart, fetchCart, removeFromCart, reduceQuantity, clearCart } = useCart();
 
   useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const res = await clientApi.get("/categories");
-        const map: CategoryMap = {};
-        res.data.forEach((cat: any) => {
-          map[cat.id] = cat.name;
-        });
-        setCategories(map);
-      } catch (err) {
-        console.error("Error fetching categories:", err);
-      }
-    };
-    fetchCategories();
+    fetchCart();
   }, []);
 
-  const subtotal = cart.reduce(
-    (sum, item) => sum + item.price * item.quantity,
-    0
-  );
+  if (!cart.length) return <p className="p-8 text-center">Your cart is empty</p>;
+
+  const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const shipping = subtotal > 20000 ? 0 : 500;
   const total = subtotal + shipping;
-  const formatPrice = (price: number) => `₹${price.toLocaleString("en-IN")}`;
-
-  if (!cart || cart.length === 0) {
-    return (
-      <p className="p-8 text-center text-[var(--color-secondary)] font-heading">
-        Your cart is empty
-      </p>
-    );
-  }
 
   return (
     <div className="max-w-7xl mx-auto py-12 px-4">
-      <h1 className="text-3xl font-heading mb-6 text-[var(--color-foreground)]">
-        Shopping Cart
-      </h1>
-
+      <h1 className="text-3xl mb-6">Shopping Cart</h1>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Cart Items */}
         <div className="lg:col-span-2 space-y-4">
           {cart.map((item) => (
-            <div
-              key={item.id}
-              className="flex border-b border-[var(--color-highlight)] pb-4"
-            >
-              <Image
-                src={item.image || "/placeholder.png"}
-                alt={item.name}
-                width={112}
-                height={112}
-                className="w-28 h-28 object-cover rounded"
-              />
+            <div key={item.id} className="flex border-b pb-4">
+              <Image src={item.image} alt={item.name} width={112} height={112} className="rounded" />
               <div className="ml-4 flex-1 flex flex-col justify-between">
                 <div>
-                  <h3 className="font-heading">{item.name}</h3>
-                  {item.category && categories[item.category] && (
-                    <p className="text-[var(--color-secondary)]">
-                      {categories[item.category]}
-                    </p>
-                  )}
-                  <p className="font-heading text-[var(--color-accent)] text-lg">
-                    {formatPrice(item.price)}
-                  </p>
+                  <h3>{item.name}</h3>
+                  <p className="text-sm">{item.category}</p>
+                  <p className="text-lg font-bold">₹{item.price.toLocaleString()}</p>
                 </div>
-
-                <div className="flex items-center mt-2 gap-2">
+                <div className="flex gap-2 mt-2 items-center">
                   <Select
                     value={item.quantity.toString()}
-                    onValueChange={(value) =>
-                      updateQuantity(item.id, parseInt(value))
-                    }
+                    onValueChange={() => reduceQuantity(item.id)}
                   >
-                    <SelectTrigger className="w-20">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {[1, 2, 3, 4, 5].map((n) => (
-                        <SelectItem key={n} value={n.toString()}>
-                          {n}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
+                    {[1, 2, 3, 4, 5].map((n) => (
+                      <option key={n} value={n}>
+                        {n}
+                      </option>
+                    ))}
                   </Select>
-
                   <Button variant="ghost" onClick={() => removeFromCart(item.id)}>
                     Remove
                   </Button>
@@ -120,20 +58,17 @@ export default function CartPage() {
         <div className="border p-6 rounded space-y-4">
           <div className="flex justify-between">
             <span>Subtotal</span>
-            <span>{formatPrice(subtotal)}</span>
+            <span>₹{subtotal.toLocaleString()}</span>
           </div>
           <div className="flex justify-between">
             <span>Shipping</span>
-            <span>{shipping === 0 ? "FREE" : formatPrice(shipping)}</span>
+            <span>{shipping === 0 ? "FREE" : `₹${shipping.toLocaleString()}`}</span>
           </div>
-          <Separator />
           <div className="flex justify-between font-bold text-lg">
             <span>Total</span>
-            <span>{formatPrice(total)}</span>
+            <span>₹{total.toLocaleString()}</span>
           </div>
-          <Button className="w-full bg-[var(--color-primary)] text-[var(--color-primary-foreground)] hover:opacity-90">
-            CHECKOUT
-          </Button>
+          <Button onClick={clearCart}>Clear Cart</Button>
         </div>
       </div>
     </div>

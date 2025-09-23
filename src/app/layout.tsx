@@ -5,7 +5,6 @@ import { Toaster } from "@/components/ui/sonner";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { UserProvider } from "@/context/UserContext";
-import CartProvider from "@/components/cart/CartProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -38,12 +37,10 @@ const RootLayout: React.FC<RootLayoutProps> = ({ children }) => {
         style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}
       >
         <UserProvider>
-          <CartProvider>
-            <Navbar />
-            <main style={{ flex: 1, paddingTop: "80px" }}>{children}</main>
-            <Footer />
-            <Toaster />
-          </CartProvider>
+          <Navbar />
+          <main style={{ flex: 1, paddingTop: "80px" }}>{children}</main>
+          <Footer />
+          <Toaster />
         </UserProvider>
       </body>
     </html>
