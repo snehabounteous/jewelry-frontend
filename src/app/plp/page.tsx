@@ -2,7 +2,6 @@ import ProductList from "@/components/ProductList";
 import { serverApi } from "@/utils/axios";
 import { Metadata } from "next";
 
-
 interface ApiError {
   message: string;
 }
@@ -35,6 +34,7 @@ async function getProducts(): Promise<Product[]> {
     return [];
   }
 }
+
 export default async function PLPPage() {
   const products = await getProducts();
 
@@ -50,19 +50,34 @@ export default async function PLPPage() {
   }));
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-neutral-50 to-white">
-      <div className="container mx-auto px-4 py-10">
-        <nav className="text-sm mb-6 text-muted-foreground">
-          Home / <span className="font-medium text-foreground">Earrings</span>
+    <div className="min-h-screen bg-[var(--color-background)] text-[var(--color-foreground)]">
+      <div className="max-w-7xl mx-auto px-6 py-12">
+        {/* Breadcrumb */}
+        <nav className="text-sm mb-6 text-[var(--color-secondary)]">
+          Home / <span className="font-medium text-[var(--color-foreground)]">Earrings</span>
         </nav>
 
-        <header className="mb-10 space-y-2">
-          <h1 className="text-4xl font-bold tracking-tight">Earrings Collection</h1>
-          <p className="text-muted-foreground">Discover our luxurious, handcrafted earrings.</p>
+        {/* Header */}
+        <header className="mb-12 space-y-3 text-center">
+          <h1
+            className="text-5xl font-bold tracking-tight"
+            style={{ fontFamily: "var(--font-heading)" }}
+          >
+            Earrings Collection
+          </h1>
+          <p
+            className="text-lg text-[var(--color-secondary)] max-w-2xl mx-auto"
+            style={{ fontFamily: "var(--font-body)" }}
+          >
+            Discover our luxurious, handcrafted earrings — timeless elegance for every occasion.
+          </p>
+          <div className="w-24 h-1 mx-auto bg-[var(--color-accent)] rounded-full" />
         </header>
 
-        {/* Pass transformed products */}
-        <ProductList initialProducts={transformed} />
+        {/* Product List */}
+        <div className="bg-white rounded-[var(--radius-lg)] shadow-sm p-6">
+          <ProductList initialProducts={transformed} />
+        </div>
       </div>
     </div>
   );

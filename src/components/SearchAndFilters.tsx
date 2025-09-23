@@ -50,16 +50,20 @@ export default function SearchAndFilters({
   const [localCategory, setLocalCategory] = useState(category || "");
 
   useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const res = await clientApi.get("/categories");
-        setCategories(res.data);
-      } catch (error) {
-        console.error("Error fetching categories:", error);
-      }
-    };
-    fetchCategories();
-  }, []);
+  const fetchCategories = async () => {
+    try {
+      console.log("ENV URL:", process.env.NEXT_PUBLIC_API_URL);
+      console.log("Final hitting URL:", `${process.env.NEXT_PUBLIC_API_URL}/categories`);
+
+      const res = await clientApi.get("/categories");
+      setCategories(res.data);
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+    }
+  };
+  fetchCategories();
+}, []);
+
 
   useEffect(() => {
   onFilterChange({
@@ -84,20 +88,33 @@ export default function SearchAndFilters({
 
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <Select value={localCategory} onValueChange={setLocalCategory}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Category" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem key="all" value="all">
-              All
-            </SelectItem>
-            {categories.map((cat) => (
-              <SelectItem key={cat.id} value={cat.id}>
-                {cat.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+  <SelectTrigger
+    className="w-[180px] bg-[var(--color-background)]/90 backdrop-blur-sm text-[var(--color-foreground)] border border-[var(--color-secondary)]/30 rounded-[var(--radius-lg)] focus:ring-[var(--color-accent)] focus:border-[var(--color-accent)]"
+  >
+    <SelectValue placeholder="Category" />
+  </SelectTrigger>
+  <SelectContent
+    className="bg-[var(--color-background)]/95 backdrop-blur-sm text-[var(--color-foreground)] border border-[var(--color-secondary)]/30 rounded-[var(--radius-md)] shadow-lg z-[9999] overflow-y-auto max-h-64"
+  >
+    <SelectItem
+      key="all"
+      value="all"
+      className="hover:bg-[var(--color-highlight)] hover:text-[var(--color-foreground)] rounded-[var(--radius-sm)]"
+    >
+      All
+    </SelectItem>
+    {categories.map((cat) => (
+      <SelectItem
+        key={cat.id}
+        value={cat.id}
+        className="hover:bg-[var(--color-highlight)] hover:text-[var(--color-foreground)] rounded-[var(--radius-sm)]"
+      >
+        {cat.name}
+      </SelectItem>
+    ))}
+  </SelectContent>
+</Select>
+
         <div className="flex gap-2 items-center">
           <Input
             type="number"
