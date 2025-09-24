@@ -6,6 +6,7 @@ import { Search, Heart, ShoppingBag, Menu, X } from "lucide-react";
 import { useState, useEffect } from "react";
 import Profile from "./Profile";
 import { useCart } from "@/store/useCart";
+import { useUserStore } from "@/store/useUserStore";
 import {
   Popover,
   PopoverContent,
@@ -13,15 +14,20 @@ import {
 } from "@/components/ui/popover";
 
 export default function Navbar() {
+    const { isLoggedIn, user, logout } = useUserStore();
+
   const [mobileMenuOpened, setMobileMenuOpened] = useState(false);
   const navLinks = ["Collections", "About", "Services", "Contact"];
 
-  // 🛒 cart state
+  // ✅ get cart + user state
   const { cart, fetchCart, removeFromCart } = useCart();
 
+  // ✅ fetch cart only when user logs in
   useEffect(() => {
-    fetchCart(); // fetch cart on load
-  }, [fetchCart]);
+    if (isLoggedIn) {
+      fetchCart();
+    }
+  }, [isLoggedIn, fetchCart]);
 
   // 👉 total count (sum of quantities)
   const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
