@@ -3,12 +3,28 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Search, Heart, ShoppingBag, Menu, X } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Profile from "./Profile";
+import { useCart } from "@/store/useCart";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 export default function Navbar() {
   const [mobileMenuOpened, setMobileMenuOpened] = useState(false);
   const navLinks = ["Collections", "About", "Services", "Contact"];
+
+  // 🛒 cart state
+  const { cart, fetchCart, removeFromCart } = useCart();
+
+  useEffect(() => {
+    fetchCart(); // fetch cart on load
+  }, [fetchCart]);
+
+  // 👉 total count (sum of quantities)
+  const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
     <>
@@ -42,11 +58,91 @@ export default function Navbar() {
             <button aria-label="Wishlist" className="p-2 rounded-full hover:bg-gray-100">
               <Heart size={20} color="var(--color-primary)" />
             </button>
-            <button aria-label="Shopping Bag" className="p-2 rounded-full hover:bg-gray-100">
-              <ShoppingBag size={20} color="var(--color-primary)" />
-            </button>
 
-            {/* Profile dropdown from shadcn */}
+            {/* 🛍️ Cart Dropdown */}
+            <Popover>
+              <PopoverTrigger asChild>
+                <div className="relative">
+                  <button
+                    aria-label="Shopping Bag"
+                    className="p-2 rounded-full hover:bg-[var(--color-highlight)] transition-colors"
+                  >
+                    <ShoppingBag size={22} color="var(--color-primary)" />
+                  </button>
+                  {cartCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-[var(--color-accent)] text-[var(--color-primary-foreground)] text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full shadow">
+                      {cartCount}
+                    </span>
+                  )}
+                </div>
+              </PopoverTrigger>
+
+              <PopoverContent
+                className="w-96 p-5 rounded-[var(--radius-lg)] bg-[var(--color-background)] shadow-xl border border-[var(--color-highlight)]"
+              >
+                <h4 className="font-heading text-lg text-[var(--color-primary)] mb-4">
+                  Your Cart
+                </h4>
+
+                {cart.length === 0 ? (
+                  <p className="text-[var(--color-secondary)] font-body text-sm">
+                    Your cart is empty.
+                  </p>
+                ) : (
+                  <div className="flex flex-col gap-4 max-h-72 overflow-y-auto pr-1">
+                    {cart.map((item) => (
+                      <div
+                        key={item.id}
+                        className="flex items-center gap-4 border-b border-[var(--color-highlight)] pb-3"
+                      >
+                        <Image
+                          src={item.image}
+                          alt={item.name}
+                          width={50}
+                          height={50}
+                          className="rounded-[var(--radius-md)] object-cover border border-[var(--color-highlight)]"
+                        />
+                        <div className="flex-1">
+                          <p className="text-sm font-body font-medium text-[var(--color-primary)]">
+                            {item.name}
+                          </p>
+                          <p className="text-xs text-[var(--color-secondary)]">
+                            {item.quantity} × ₹{item.price}
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => removeFromCart(item.id)}
+                          className="text-xs text-red-500 hover:text-red-600 transition-colors"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {cart.length > 0 && (
+                  <div className="mt-5 space-y-3">
+                    {/* Total */}
+                    <div className="flex justify-between items-center font-body">
+                      <span className="text-[var(--color-secondary)]">Subtotal:</span>
+                      <span className="font-medium text-[var(--color-primary)]">
+                        ₹{cart.reduce((sum, item) => sum + item.price * item.quantity, 0)}
+                      </span>
+                    </div>
+
+                    {/* Checkout button */}
+                    <Link href="/cart" className="block">
+                      <button className="w-full bg-[var(--color-accent)] text-[var(--color-primary-foreground)] font-heading py-2 rounded-[var(--radius-md)] shadow hover:opacity-90 transition-opacity">
+                        View Cart & Checkout
+                      </button>
+                    </Link>
+                  </div>
+                )}
+              </PopoverContent>
+            </Popover>
+
+            {/* Profile dropdown */}
             <Profile />
 
             {/* Mobile menu button */}
