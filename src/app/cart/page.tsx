@@ -9,9 +9,11 @@ import { useCart } from "@/store/useCart";
 import Image from "next/image";
 import { useEffect } from "react";
 import { Trash2, ShoppingBag, Sparkles, Truck, Gift } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export default function CartPage() {
   const { cart, fetchCart, removeFromCart, reduceQuantity, clearCart } = useCart();
+  const router = useRouter(); 
 
   useEffect(() => {
     fetchCart();
@@ -28,7 +30,7 @@ export default function CartPage() {
               </div>
               <h2 className="text-2xl font-bold mb-2" style={{ fontFamily: 'var(--font-heading)', color: 'var(--color-foreground)' }}>Your cart is empty</h2>
               <p className="mb-8" style={{ color: 'var(--color-secondary)', fontFamily: 'var(--font-body)' }}>Discover our exquisite jewelry collection and add some sparkle to your cart</p>
-              <Button className="font-semibold px-8" style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-primary)', borderRadius: 'var(--radius)' }}>
+              <Button className="font-semibold px-8" style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-primary)', borderRadius: 'var(--radius)' }} onClick={() => router.push("/")}>
                 Continue Shopping
               </Button>
             </CardContent>
@@ -224,6 +226,7 @@ export default function CartPage() {
 
                 <div className="space-y-3 pt-4">
                   <Button 
+                    onClick={() => router.push("/checkout")}
                     className="w-full font-semibold py-3 shadow-lg hover:shadow-xl transition-all duration-300"
                     style={{ 
                       backgroundColor: 'var(--color-accent)', 
@@ -237,6 +240,7 @@ export default function CartPage() {
                   </Button>
                   
                   <Button 
+                   onClick={() => router.push("/")}
                     variant="outline" 
                     className="w-full border-2 font-medium hover:bg-opacity-10"
                     style={{ 
