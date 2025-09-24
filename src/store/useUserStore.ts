@@ -1,3 +1,6 @@
+// store/useUserStore.ts
+"use client";
+
 import { create } from "zustand";
 import { clientApi } from "@/utils/axios";
 
@@ -11,23 +14,38 @@ interface User {
 interface UserState {
   user: User | null;
   loading: boolean;
+  isLoggedIn: boolean;
   setUser: (user: User | null) => void;
   fetchUser: () => Promise<void>;
+  logout: () => void;
 }
 
 export const useUserStore = create<UserState>((set) => ({
   user: null,
   loading: true,
-  setUser: (user) => set({ user }),
+  isLoggedIn: false,
+
+  setUser: (user) =>
+    set({
+      user,
+      isLoggedIn: !!user,
+    }),
+
   fetchUser: async () => {
     set({ loading: true });
     try {
       const res = await clientApi.get("/auth/me");
-      set({ user: res.data.user });
+      set({ user: res.data.user, isLoggedIn: true });
     } catch {
-      set({ user: null });
+      set({ user: null, isLoggedIn: false });
     } finally {
       set({ loading: false });
     }
+  },
+
+  logout: async () => {
+    set({ user: null, isLoggedIn: false });
+    
+    await clientApi.post("/auth/logout");
   },
 }));
