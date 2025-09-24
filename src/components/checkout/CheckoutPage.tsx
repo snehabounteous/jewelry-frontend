@@ -20,9 +20,27 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Lock, Truck } from "lucide-react";
 import { useRouter } from "next/navigation";
 
+type AddressType = {
+  id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone: string;
+  street_address: string;
+  city: string;
+  state: string;
+  zip: string;
+  country: string;
+  is_default: boolean;
+};
+
 const CheckoutPage = () => {
   const { cart, fetchCart, clearCart } = useCart();
   const router = useRouter();
+  const [defaultAddress, setDefaultAddress] = useState<AddressType | null>(null);
+  const [addresses, setAddresses] = useState<AddressType[]>([]);
+  const [loadingAddresses, setLoadingAddresses] = useState(true);
+  const [showNewAddressForm, setShowNewAddressForm] = useState(false);
 
   const [selectedShipping, setSelectedShipping] = useState<"standard" | "express" | "overnight">(
     "standard"
@@ -36,7 +54,7 @@ const CheckoutPage = () => {
     phone: "",
   });
   const [shippingAddress, setShippingAddress] = useState({
-    address: "",
+    street_address: "",
     city: "",
     state: "",
     zip: "",
@@ -45,7 +63,47 @@ const CheckoutPage = () => {
 
   useEffect(() => {
     fetchCart();
+    fetchAddresses();
   }, []);
+
+  const fetchAddresses = async () => {
+    try {
+      setLoadingAddresses(true);
+      const res = await clientApi.get("/addresses"); // all addresses
+      const allAddresses: AddressType[] = res.data;
+
+      setAddresses(allAddresses);
+
+      // find default
+      const defaultAddr = allAddresses.find((a) => a.is_default) || null;
+      setDefaultAddress(defaultAddr);
+
+      if (!defaultAddr) {
+        // first-time user, show empty form
+        setShowNewAddressForm(true);
+      } else {
+        // prefill contact and shipping info
+        setContactInfo({
+          firstName: defaultAddr.first_name,
+          lastName: defaultAddr.last_name,
+          email: defaultAddr.email,
+          phone: defaultAddr.phone,
+        });
+        setShippingAddress({
+          street_address: defaultAddr.street_address,
+          city: defaultAddr.city,
+          state: defaultAddr.state,
+          zip: defaultAddr.zip,
+          country: defaultAddr.country,
+        });
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to load addresses");
+    } finally {
+      setLoadingAddresses(false);
+    }
+  };
 
   if (!cart.length) return <p className="p-8 text-center">Your cart is empty</p>;
 
@@ -57,18 +115,42 @@ const CheckoutPage = () => {
 
   const handlePlaceOrder = async () => {
     try {
-      // Construct orderDetails in the shape backend expects
-      const orderDetails = {
-        contact: contactInfo,
-        shipping: shippingAddress,
-        shippingMethod: selectedShipping,
-        shippingCost: shippingCost,
-      };
+      let orderDetails: any;
 
-      const { data }=await clientApi.post("/order/place", orderDetails);
+      if (showNewAddressForm) {
+        // send full contact & shipping info
+        const orderDetails = {
+          contact: {
+            first_name: contactInfo.firstName,
+            last_name: contactInfo.lastName,
+            email: contactInfo.email,
+            phone: contactInfo.phone,
+          },
+          shipping: shippingAddress,
+          shippingMethod: selectedShipping,
+          shippingCost: shippingCost,
+        };
+      } else if (defaultAddress) {
+        // send only default address ID
+        const orderDetails = {
+          contact: {
+            first_name: contactInfo.firstName,
+            last_name: contactInfo.lastName,
+            email: contactInfo.email,
+            phone: contactInfo.phone,
+          },
+          shipping: shippingAddress,
+          shippingMethod: selectedShipping,
+          shippingCost: shippingCost,
+        };
+      } else {
+        throw new Error("No address selected");
+      }
+
+      const { data } = await clientApi.post("/order/place", orderDetails);
       toast.success("Order placed successfully!");
       await clearCart();
-      router.push(`/order-success?orderId=${data.order_id}&total=${data.total_amount}`);
+      router.push("/orders");
     } catch (err) {
       console.error("Error placing order:", err);
       toast.error("Failed to place order");
@@ -128,59 +210,71 @@ const CheckoutPage = () => {
             </CardContent>
           </Card>
 
+          {defaultAddress && !showNewAddressForm && (
+            <Button variant="outline" onClick={() => setShowNewAddressForm(true)} className="mb-4">
+              Add New Address
+            </Button>
+          )}
+
           {/* Shipping Address */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Shipping Address</CardTitle>
-              <CardDescription>Where should we deliver your jewelry?</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <Input
-                placeholder="Street Address"
-                value={shippingAddress.address}
-                onChange={(e) =>
-                  setShippingAddress({ ...shippingAddress, address: e.target.value })
-                }
-              />
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {showNewAddressForm && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Shipping Address</CardTitle>
+                <CardDescription>Where should we deliver your jewelry?</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
                 <Input
-                  placeholder="City"
-                  value={shippingAddress.city}
-                  onChange={(e) => setShippingAddress({ ...shippingAddress, city: e.target.value })}
+                  placeholder="Street Address"
+                  value={shippingAddress.street_address}
+                  onChange={(e) =>
+                    setShippingAddress({ ...shippingAddress, street_address: e.target.value })
+                  }
                 />
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <Input
+                    placeholder="City"
+                    value={shippingAddress.city}
+                    onChange={(e) =>
+                      setShippingAddress({ ...shippingAddress, city: e.target.value })
+                    }
+                  />
+                  <Select
+                    value={shippingAddress.state}
+                    onValueChange={(val) => setShippingAddress({ ...shippingAddress, state: val })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="State" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="ca">California</SelectItem>
+                      <SelectItem value="ny">New York</SelectItem>
+                      <SelectItem value="tx">Texas</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Input
+                    placeholder="ZIP"
+                    value={shippingAddress.zip}
+                    onChange={(e) =>
+                      setShippingAddress({ ...shippingAddress, zip: e.target.value })
+                    }
+                  />
+                </div>
                 <Select
-                  value={shippingAddress.state}
-                  onValueChange={(val) => setShippingAddress({ ...shippingAddress, state: val })}
+                  value={shippingAddress.country}
+                  onValueChange={(val) => setShippingAddress({ ...shippingAddress, country: val })}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="State" />
+                    <SelectValue placeholder="Country" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="ca">California</SelectItem>
-                    <SelectItem value="ny">New York</SelectItem>
-                    <SelectItem value="tx">Texas</SelectItem>
+                    <SelectItem value="us">United States</SelectItem>
+                    <SelectItem value="ca">Canada</SelectItem>
                   </SelectContent>
                 </Select>
-                <Input
-                  placeholder="ZIP"
-                  value={shippingAddress.zip}
-                  onChange={(e) => setShippingAddress({ ...shippingAddress, zip: e.target.value })}
-                />
-              </div>
-              <Select
-                value={shippingAddress.country}
-                onValueChange={(val) => setShippingAddress({ ...shippingAddress, country: val })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Country" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="us">United States</SelectItem>
-                  <SelectItem value="ca">Canada</SelectItem>
-                </SelectContent>
-              </Select>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Shipping Method */}
           <Card>
