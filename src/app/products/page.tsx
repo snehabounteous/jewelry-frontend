@@ -7,9 +7,12 @@ interface ApiError {
 }
 
 export const metadata: Metadata = {
-  title: "Earrings Collection | My Store",
+  title: "Product Collection | My Store",
   description: "Discover our exquisite collection of handcrafted earrings.",
 };
+
+// ⏳ ISR setting
+export const revalidate = 60;
 
 export type Product = {
   id: string;
@@ -25,9 +28,7 @@ export type Product = {
 
 async function getProducts(): Promise<Product[]> {
   try {
-    console.log("Hitting URL:", `${process.env.NEXT_PUBLIC_API_URL}/products`);
     const res = await serverApi.get("/products");
-    console.log("Fetched products:", res.data);
     return res.data;
   } catch (error: unknown) {
     console.error("Error fetching products:", (error as ApiError).message);
@@ -39,7 +40,7 @@ export default async function PLPPage() {
   const products = await getProducts();
 
   const transformed = products.map((p) => ({
-    id: Number(p.id),
+    id: p.id, // keep as string
     name: p.name,
     price: Number(p.price),
     originalPrice: Number(p.price) + 500,
@@ -54,7 +55,7 @@ export default async function PLPPage() {
       <div className="max-w-7xl mx-auto px-6 py-12">
         {/* Breadcrumb */}
         <nav className="text-sm mb-6 text-[var(--color-secondary)]">
-          Home / <span className="font-medium text-[var(--color-foreground)]">Earrings</span>
+          Home / <span className="font-medium text-[var(--color-foreground)]">Products</span>
         </nav>
 
         {/* Header */}
@@ -63,7 +64,7 @@ export default async function PLPPage() {
             className="text-5xl font-bold tracking-tight"
             style={{ fontFamily: "var(--font-heading)" }}
           >
-            Earrings Collection
+            Collection
           </h1>
           <p
             className="text-lg text-[var(--color-secondary)] max-w-2xl mx-auto"

@@ -11,9 +11,9 @@ import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { Star, Diamond, Sparkles, Eye, EyeOff, Loader2 } from "lucide-react";
 import * as yup from "yup";
-import { useUser } from "@/context/UserContext";
 import { useRouter } from "next/navigation";
 import { clientApi } from "@/utils/axios";
+import { useUserStore } from "@/store/useUserStore";
 
 interface ApiError {
   message: string;
@@ -38,7 +38,7 @@ interface FormData {
 
 const AuthPage: React.FC = () => {
   const router = useRouter();
-  const { setUser } = useUser();
+  const { setUser } = useUserStore();
   const [isRegister, setIsRegister] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [showPassword, setShowPassword] = useState<boolean>(false);
@@ -53,39 +53,39 @@ const AuthPage: React.FC = () => {
   });
 
   const onSubmit = async (values: FormData): Promise<void> => {
-    setIsLoading(true);
-    try {
-      const endpoint: string = isRegister ? "/auth/register" : "/auth/login";
-      const payload = isRegister
-        ? { name: values.name!, email: values.email, password: values.password }
-        : { email: values.email, password: values.password };
+  setIsLoading(true);
+  try {
+    const endpoint = isRegister ? "/auth/register" : "/auth/login";
+    const payload = isRegister
+      ? { name: values.name!, email: values.email, password: values.password }
+      : { email: values.email, password: values.password };
 
-      const response = await clientApi.post(endpoint, payload);
+    const response = await clientApi.post(endpoint, payload);
 
-      if (!isRegister) {
-        localStorage.setItem("accessToken", response.data.accessToken);
-        localStorage.setItem("refreshToken", response.data.refreshToken);
+    if (!isRegister) {
+      // Only store access token
+      localStorage.setItem("accessToken", response.data.accessToken);
 
-        const userResponse = await clientApi.get("/auth/me");
-        const user = userResponse.data.user;
+      // fetch current user
+      const userResponse = await clientApi.get("/auth/me");
+      const user = userResponse.data.user;
+      setUser(user);
 
-        setUser(user);
-
-        toast.success(`Welcome back, ${user.name}!`);
-        router.push("/");
-      } else {
-        toast.success("Registration successful! You can now log in.");
-        setIsRegister(false);
-      }
-
-      reset();
-    } catch (error: unknown) {
-      const errorMessage = (error as ApiError).message || "An error occurred";
-      toast.error(errorMessage);
-    } finally {
-      setIsLoading(false);
+      toast.success(`Welcome back, ${user.name}!`);
+      router.push("/");
+    } else {
+      toast.success("Registration successful! You can now log in.");
+      setIsRegister(false);
     }
-  };
+
+    reset();
+  } catch (error: any) {
+    toast.error(error?.response?.data?.error || "An error occurred");
+  } finally {
+    setIsLoading(false);
+  }
+};
+
 
   const toggleAuthMode = (): void => {
     setIsRegister(!isRegister);

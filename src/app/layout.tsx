@@ -4,7 +4,6 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { UserProvider } from "@/context/UserContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -36,12 +35,10 @@ const RootLayout: React.FC<RootLayoutProps> = ({ children }) => {
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}
       >
-        <UserProvider>
-          <Navbar />
-          <main style={{ flex: 1, paddingTop: "80px" }}>{children}</main>
-          <Footer />
-          <Toaster />
-        </UserProvider>
+        <Navbar />
+        <main style={{ flex: 1, paddingTop: "80px" }}>{children}</main>
+        <Footer />
+        <Toaster />
       </body>
     </html>
   );
