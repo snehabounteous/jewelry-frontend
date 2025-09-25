@@ -17,10 +17,26 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Lock, Truck } from "lucide-react";
+import { Lock, Truck, PlusCircle, Badge } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useForm, Controller } from "react-hook-form";
+import * as yup from "yup";
+import { yupResolver } from "@hookform/resolvers/yup";
 
-type AddressType = {
+// ✅ Validation schema
+const addressSchema = yup.object().shape({
+  first_name: yup.string().required("First name is required"),
+  last_name: yup.string().required("Last name is required"),
+  email: yup.string().email("Invalid email").required("Email is required"),
+  phone: yup.string().required("Phone is required").max(10).min(10),
+  street_address: yup.string().required("Street address is required"),
+  city: yup.string().required("City is required"),
+  state: yup.string().required("State is required"),
+  zip: yup.string().required("ZIP is required").max(6).min(6),
+  country: yup.string().required("Country is required"),
+});
+
+type Address = {
   id: string;
   first_name: string;
   last_name: string;
@@ -34,68 +50,83 @@ type AddressType = {
   is_default: boolean;
 };
 
+type ShippingOption = {
+  id: string;
+  name: string;
+  cost: number;
+};
+
 const CheckoutPage = () => {
   const { cart, fetchCart, clearCart } = useCart();
   const router = useRouter();
-  const [defaultAddress, setDefaultAddress] = useState<AddressType | null>(null);
-  const [addresses, setAddresses] = useState<AddressType[]>([]);
-  const [loadingAddresses, setLoadingAddresses] = useState(true);
+
+  // Addresses
+  const [addresses, setAddresses] = useState<Address[]>([]);
+  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
+  const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
   const [showNewAddressForm, setShowNewAddressForm] = useState(false);
+  const [setAsDefault, setSetAsDefault] = useState(false);
+  const [loadingAddresses, setLoadingAddresses] = useState(true);
 
-  const [selectedShipping, setSelectedShipping] = useState<"standard" | "express" | "overnight">(
-    "standard"
-  );
+  // Shipping
+  const [shippingMethod, setShippingMethod] = useState<string>("standard");
+  const [shippingOptions, setShippingOptions] = useState<ShippingOption[]>([
+    { id: "standard", name: "Standard Shipping", cost: 0 },
+    { id: "express", name: "Express Shipping", cost: 99 },
+    { id: "overnight", name: "Overnight Shipping", cost: 199 },
+  ]);
 
-  // Contact & shipping info
-  const [contactInfo, setContactInfo] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    phone: "",
+  // ✅ React Hook Form
+  const { control, handleSubmit, formState: { errors }, reset } = useForm({
+    defaultValues: {
+      first_name: "",
+      last_name: "",
+      email: "",
+      phone: "",
+      street_address: "",
+      city: "",
+      state: "",
+      zip: "",
+      country: "",
+    },
+    resolver: yupResolver(addressSchema),
   });
-  const [shippingAddress, setShippingAddress] = useState({
-    street_address: "",
-    city: "",
-    state: "",
-    zip: "",
-    country: "",
-  });
 
+  // Load cart & addresses
   useEffect(() => {
     fetchCart();
     fetchAddresses();
   }, []);
 
+  // Fetch addresses
   const fetchAddresses = async () => {
     try {
       setLoadingAddresses(true);
-      const res = await clientApi.get("/addresses"); // all addresses
-      const allAddresses: AddressType[] = res.data;
-
+      const res = await clientApi.get("/address"); // make sure endpoint matches backend
+      const allAddresses: Address[] = res.data;
       setAddresses(allAddresses);
 
-      // find default
-      const defaultAddr = allAddresses.find((a) => a.is_default) || null;
-      setDefaultAddress(defaultAddr);
-
-      if (!defaultAddr) {
-        // first-time user, show empty form
+      if (allAddresses.length === 0) {
         setShowNewAddressForm(true);
       } else {
-        // prefill contact and shipping info
-        setContactInfo({
-          firstName: defaultAddr.first_name,
-          lastName: defaultAddr.last_name,
-          email: defaultAddr.email,
-          phone: defaultAddr.phone,
-        });
-        setShippingAddress({
-          street_address: defaultAddr.street_address,
-          city: defaultAddr.city,
-          state: defaultAddr.state,
-          zip: defaultAddr.zip,
-          country: defaultAddr.country,
-        });
+        const defaultAddr = allAddresses.find((a) => a.is_default) || allAddresses[0];
+        setSelectedAddress(defaultAddr || null);
+        setSelectedAddressId(defaultAddr?.id || null);
+
+        // Prefill form if editing default
+        if (defaultAddr) {
+          reset({
+            first_name: defaultAddr.first_name,
+            last_name: defaultAddr.last_name,
+            email: defaultAddr.email,
+            phone: defaultAddr.phone,
+            street_address: defaultAddr.street_address,
+            city: defaultAddr.city,
+            state: defaultAddr.state,
+            zip: defaultAddr.zip,
+            country: defaultAddr.country,
+          });
+        }
       }
     } catch (err) {
       console.error(err);
@@ -108,222 +139,287 @@ const CheckoutPage = () => {
   if (!cart.length) return <p className="p-8 text-center">Your cart is empty</p>;
 
   const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const shippingCost =
-    selectedShipping === "express" ? 99 : selectedShipping === "overnight" ? 199 : 0;
+  const selectedShippingOption = shippingOptions.find((s) => s.id === shippingMethod);
+  const shippingCost = selectedShippingOption?.cost ?? 0;
   const tax = Math.round(subtotal * 0.08);
   const total = subtotal + shippingCost + tax;
 
-  const handlePlaceOrder = async () => {
+  // ✅ Place order handler
+  const handlePlaceOrderForm = handleSubmit(async (data) => {
     try {
-      let orderDetails: any;
+      const payload: any = { shippingMethod, shippingCost };
 
       if (showNewAddressForm) {
-        // send full contact & shipping info
-        const orderDetails = {
-          contact: {
-            first_name: contactInfo.firstName,
-            last_name: contactInfo.lastName,
-            email: contactInfo.email,
-            phone: contactInfo.phone,
-          },
-          shipping: shippingAddress,
-          shippingMethod: selectedShipping,
-          shippingCost: shippingCost,
+        payload.contact = {
+          firstName: data.first_name,
+          lastName: data.last_name,
+          email: data.email,
+          phone: data.phone,
         };
-      } else if (defaultAddress) {
-        // send only default address ID
-        const orderDetails = {
-          contact: {
-            first_name: contactInfo.firstName,
-            last_name: contactInfo.lastName,
-            email: contactInfo.email,
-            phone: contactInfo.phone,
-          },
-          shipping: shippingAddress,
-          shippingMethod: selectedShipping,
-          shippingCost: shippingCost,
+        payload.shipping = {
+          address: data.street_address,
+          city: data.city,
+          state: data.state,
+          zip: data.zip,
+          country: data.country,
         };
-      } else {
-        throw new Error("No address selected");
+        payload.setDefault = setAsDefault;
+      } else if (selectedAddress) {
+        payload.addressId = selectedAddress.id;
       }
 
-      const { data } = await clientApi.post("/order/place", orderDetails);
+      await clientApi.post("/order/place", payload);
       toast.success("Order placed successfully!");
       await clearCart();
       router.push("/orders");
-    } catch (err) {
-      console.error("Error placing order:", err);
-      toast.error("Failed to place order");
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err?.response?.data?.message || "Failed to place order");
     }
-  };
+  });
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <h1 className="text-3xl font-bold mb-2">Checkout</h1>
-      <p className="text-gray-500 mb-8">Complete your purchase of exquisite jewelry</p>
+      <p className="text-gray-500 mb-8">Complete your purchase</p>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Main Form */}
+        {/* Left: Form */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Contact Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Contact Information</CardTitle>
-              <CardDescription>We will use this to send order updates</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="firstName">First Name</Label>
-                  <Input
-                    id="firstName"
-                    value={contactInfo.firstName}
-                    onChange={(e) => setContactInfo({ ...contactInfo, firstName: e.target.value })}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="lastName">Last Name</Label>
-                  <Input
-                    id="lastName"
-                    value={contactInfo.lastName}
-                    onChange={(e) => setContactInfo({ ...contactInfo, lastName: e.target.value })}
-                  />
-                </div>
-              </div>
-              <div>
-                <Label htmlFor="email">Email Address</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={contactInfo.email}
-                  onChange={(e) => setContactInfo({ ...contactInfo, email: e.target.value })}
-                />
-              </div>
-              <div>
-                <Label htmlFor="phone">Phone Number</Label>
-                <Input
-                  id="phone"
-                  value={contactInfo.phone}
-                  onChange={(e) => setContactInfo({ ...contactInfo, phone: e.target.value })}
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {defaultAddress && !showNewAddressForm && (
-            <Button variant="outline" onClick={() => setShowNewAddressForm(true)} className="mb-4">
-              Add New Address
-            </Button>
-          )}
-
-          {/* Shipping Address */}
-          {showNewAddressForm && (
+          {/* Saved Addresses */}
+          {addresses.length > 0 && !showNewAddressForm && (
             <Card>
               <CardHeader>
-                <CardTitle>Shipping Address</CardTitle>
-                <CardDescription>Where should we deliver your jewelry?</CardDescription>
+                <CardTitle>Saved Addresses</CardTitle>
+                <CardDescription>Select an address for delivery</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <Input
-                  placeholder="Street Address"
-                  value={shippingAddress.street_address}
-                  onChange={(e) =>
-                    setShippingAddress({ ...shippingAddress, street_address: e.target.value })
-                  }
-                />
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <Input
-                    placeholder="City"
-                    value={shippingAddress.city}
-                    onChange={(e) =>
-                      setShippingAddress({ ...shippingAddress, city: e.target.value })
+              <CardContent className="space-y-3">
+                <RadioGroup
+                  value={selectedAddressId ?? ""}
+                  onValueChange={(val) => {
+                    setSelectedAddressId(val);
+                    const addr = addresses.find((a) => a.id === val) || null;
+                    setSelectedAddress(addr);
+                    if (addr) {
+                      reset({
+                        first_name: addr.first_name,
+                        last_name: addr.last_name,
+                        email: addr.email,
+                        phone: addr.phone,
+                        street_address: addr.street_address,
+                        city: addr.city,
+                        state: addr.state,
+                        zip: addr.zip,
+                        country: addr.country,
+                      });
                     }
-                  />
-                  <Select
-                    value={shippingAddress.state}
-                    onValueChange={(val) => setShippingAddress({ ...shippingAddress, state: val })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="State" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="ca">California</SelectItem>
-                      <SelectItem value="ny">New York</SelectItem>
-                      <SelectItem value="tx">Texas</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Input
-                    placeholder="ZIP"
-                    value={shippingAddress.zip}
-                    onChange={(e) =>
-                      setShippingAddress({ ...shippingAddress, zip: e.target.value })
-                    }
-                  />
-                </div>
-                <Select
-                  value={shippingAddress.country}
-                  onValueChange={(val) => setShippingAddress({ ...shippingAddress, country: val })}
+                  }}
+                  className="space-y-2"
                 >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Country" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="us">United States</SelectItem>
-                    <SelectItem value="ca">Canada</SelectItem>
-                  </SelectContent>
-                </Select>
+                  {addresses.map((a) => (
+                    <div
+                      key={a.id}
+                      className="p-3 border rounded-md flex justify-between items-center"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value={a.id} id={a.id} />
+                        <Label htmlFor={a.id}>
+                          {a.first_name} {a.last_name}, {a.street_address}, {a.city}, {a.state}, {a.zip}, {a.country}
+                        </Label>
+                      </div>
+                      {a.is_default && <Badge>Default</Badge>}
+                    </div>
+                  ))}
+                </RadioGroup>
+                <Button variant="outline" onClick={() => setShowNewAddressForm(true)}>
+                  <PlusCircle className="mr-1 w-4 h-4" /> Add New Address
+                </Button>
               </CardContent>
             </Card>
           )}
 
-          {/* Shipping Method */}
+          {/* New Address Form */}
+          {showNewAddressForm && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Add Shipping Address</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <Controller
+                    name="first_name"
+                    control={control}
+                    render={({ field }) => (
+                      <>
+                        <Input placeholder="First Name" {...field} />
+                        {errors.first_name && <p className="text-red-500 text-xs">{errors.first_name.message}</p>}
+                      </>
+                    )}
+                  />
+                  <Controller
+                    name="last_name"
+                    control={control}
+                    render={({ field }) => (
+                      <>
+                        <Input placeholder="Last Name" {...field} />
+                        {errors.last_name && <p className="text-red-500 text-xs">{errors.last_name.message}</p>}
+                      </>
+                    )}
+                  />
+                </div>
+
+                <Controller
+                  name="email"
+                  control={control}
+                  render={({ field }) => (
+                    <>
+                      <Input placeholder="Email" {...field} />
+                      {errors.email && <p className="text-red-500 text-xs">{errors.email.message}</p>}
+                    </>
+                  )}
+                />
+
+                <Controller
+                  name="phone"
+                  control={control}
+                  render={({ field }) => (
+                    <>
+                      <Input placeholder="Phone" {...field} />
+                      {errors.phone && <p className="text-red-500 text-xs">{errors.phone.message}</p>}
+                    </>
+                  )}
+                />
+
+                <Controller
+                  name="street_address"
+                  control={control}
+                  render={({ field }) => (
+                    <>
+                      <Input placeholder="Street Address" {...field} />
+                      {errors.street_address && <p className="text-red-500 text-xs">{errors.street_address.message}</p>}
+                    </>
+                  )}
+                />
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <Controller
+                    name="city"
+                    control={control}
+                    render={({ field }) => (
+                      <>
+                        <Input placeholder="City" {...field} />
+                        {errors.city && <p className="text-red-500 text-xs">{errors.city.message}</p>}
+                      </>
+                    )}
+                  />
+
+                  <Controller
+                    name="state"
+                    control={control}
+                    render={({ field }) => (
+                      <>
+                        <Select {...field}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="State" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="CA">California</SelectItem>
+                            <SelectItem value="NY">New York</SelectItem>
+                            <SelectItem value="TX">Texas</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        {errors.state && <p className="text-red-500 text-xs">{errors.state.message}</p>}
+                      </>
+                    )}
+                  />
+
+                  <Controller
+                    name="zip"
+                    control={control}
+                    render={({ field }) => (
+                      <>
+                        <Input placeholder="ZIP" {...field} />
+                        {errors.zip && <p className="text-red-500 text-xs">{errors.zip.message}</p>}
+                      </>
+                    )}
+                  />
+                </div>
+
+                <Controller
+                  name="country"
+                  control={control}
+                  render={({ field }) => (
+                    <>
+                      <Select {...field}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Country" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="US">United States</SelectItem>
+                          <SelectItem value="CA">Canada</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      {errors.country && <p className="text-red-500 text-xs">{errors.country.message}</p>}
+                    </>
+                  )}
+                />
+
+                <div className="flex items-center gap-2 mt-2">
+                  <input
+                    type="checkbox"
+                    checked={setAsDefault}
+                    onChange={(e) => setSetAsDefault(e.target.checked)}
+                    id="setDefault"
+                    className="w-4 h-4"
+                  />
+                  <Label htmlFor="setDefault">Set as default address</Label>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Shipping Section */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Truck className="w-5 h-5" /> Shipping Method
               </CardTitle>
-              <CardDescription>Choose delivery option</CardDescription>
+              <CardDescription>Select delivery option</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-2">
               <RadioGroup
-                value={selectedShipping}
-                onValueChange={(val) =>
-                  setSelectedShipping(val as "standard" | "express" | "overnight")
-                }
-                className="space-y-3"
+                value={shippingMethod}
+                onValueChange={(val) => setShippingMethod(val)}
+                className="space-y-2"
               >
-                <div className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex items-center space-x-3">
-                    <RadioGroupItem value="standard" id="standard" />
-                    <Label htmlFor="standard">Standard Shipping</Label>
+                {shippingOptions.map((option) => (
+                  <div
+                    key={option.id}
+                    className="p-3 border rounded-md flex justify-between items-center"
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value={option.id} id={option.id} />
+                      <Label htmlFor={option.id}>{option.name}</Label>
+                    </div>
+                    <span>{option.cost === 0 ? "Free" : `₹${option.cost}`}</span>
                   </div>
-                  <span>Free</span>
-                </div>
-                <div className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex items-center space-x-3">
-                    <RadioGroupItem value="express" id="express" />
-                    <Label htmlFor="express">Express Shipping</Label>
-                  </div>
-                  <span>$99</span>
-                </div>
+                ))}
               </RadioGroup>
             </CardContent>
           </Card>
         </div>
 
-        {/* Order Summary */}
+        {/* Right: Order Summary */}
         <div className="lg:col-span-1">
-          <Card className="sticky top-4">
+          <Card className="sticky top-4 space-y-3">
             <CardHeader>
               <CardTitle>Order Summary</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-2">
               {cart.map((item) => (
                 <div key={item.id} className="flex justify-between">
-                  <div>
-                    {item.name} x {item.quantity}
-                  </div>
-                  <div>₹{item.price.toLocaleString()}</div>
+                  <span>{item.name} x {item.quantity}</span>
+                  <span>₹{item.price.toLocaleString()}</span>
                 </div>
               ))}
               <Separator />
@@ -347,7 +443,10 @@ const CheckoutPage = () => {
               <div className="flex items-center justify-center space-x-2 text-xs text-gray-500 mt-2">
                 <Lock className="w-4 h-4" /> Secure checkout
               </div>
-              <Button onClick={handlePlaceOrder} className="w-full mt-4 bg-yellow-600 text-white">
+              <Button
+                onClick={handlePlaceOrderForm}
+                className="w-full mt-4 bg-yellow-600 text-white"
+              >
                 Place Order
               </Button>
             </CardContent>
