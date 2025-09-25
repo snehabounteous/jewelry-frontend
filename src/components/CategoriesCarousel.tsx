@@ -20,7 +20,6 @@ const CategoriesCarousel: React.FC<Props> = ({ categories }) => {
   const [offset, setOffset] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
   const itemWidth = 304; 
-  console.log("hi")
 
   // Clone categories to allow infinite scroll
   const extendedCategories = [...categories, ...categories];
