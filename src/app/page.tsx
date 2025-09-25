@@ -1,4 +1,15 @@
+<<<<<<< Updated upstream
 'use client';
+=======
+import React from "react";
+import HeroCarousel from "../components/HeroCarousel";
+import CategoriesCarousel from "../components/CategoriesCarousel";
+import CustomerStories from "../components/CustomerStories";
+import { serverApi } from "../utils/axios";
+import image1 from "../../public/images/jewel1.webp"
+import image2 from "../../public/images/jewel2.webp"
+import image3 from "../../public/images/jewel3.webp"
+>>>>>>> Stashed changes
 
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
@@ -8,7 +19,12 @@ interface HeroSlide {
   id: number;
   title: string;
   subtitle: string;
+<<<<<<< Updated upstream
   background: string;
+=======
+  ctaText: string;
+  imageUrl: string;
+>>>>>>> Stashed changes
 }
 
 interface JewelryCategory {
@@ -18,6 +34,7 @@ interface JewelryCategory {
   icon: React.ReactNode;
 }
 
+<<<<<<< Updated upstream
 const HomePage: React.FC = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [currentCategoryPosition, setCurrentCategoryPosition] = useState(0);
@@ -134,6 +151,44 @@ const HomePage: React.FC = () => {
     const maxPosition = Math.max(0, jewelryCategories.length - 4);
     setCurrentCategoryPosition((prev) => Math.min(maxPosition, prev + 1));
   };
+=======
+const heroSlides: HeroSlide[] = [
+  {
+    id: 1,
+    title: "Timeless Elegance",
+    subtitle: "Discover our exquisite collection of handcrafted jewelry",
+    ctaText: "Explore Collection",
+    imageUrl: image1.src,
+  },
+  {
+    id: 2,
+    title: "Crafted Perfection",
+    subtitle: "Each piece tells a story of artisan mastery and luxury",
+    ctaText: "Shop Now",
+    imageUrl: image2.src,
+  },
+  {
+    id: 3,
+    title: "Luxury Redefined",
+    subtitle: "Where sophistication meets contemporary design",
+    ctaText: "View Collection",
+    imageUrl: image3.src,
+  },
+];
+
+async function getCategories() {
+  const res = await serverApi.get("/categories");
+  return res.data as Category[];
+}
+
+const HomePage = async () => {
+  let categories: Category[] = [];
+  try {
+    categories = await getCategories();
+  } catch (err) {
+    console.error("Failed to fetch categories", err);
+  }
+>>>>>>> Stashed changes
 
   return (
     <>
@@ -148,8 +203,25 @@ const HomePage: React.FC = () => {
           --color-highlight: #E5E5E5;
           --color-accent: #D4AF37;
 
+<<<<<<< Updated upstream
           --font-heading: 'Playfair Display', serif;
           --font-body: 'Playfair Display', serif;
+=======
+      <section className="py-24 px-[5%] mx-auto">
+        <a
+          href="/products"
+          className="block text-center mb-16 cursor-pointer hover:opacity-80 transition-opacity"
+        >
+          <h2 className="text-4xl md:text-6xl font-light text-gray-900 mb-4">
+            Our Collections
+          </h2>
+          <p className="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+            Explore our carefully curated selection of fine jewelry, each piece
+            designed to complement your unique style and celebrate life's
+            precious moments.
+          </p>
+        </a>
+>>>>>>> Stashed changes
 
           --radius: 0.625rem;
           --radius-sm: calc(var(--radius) - 4px);
@@ -463,6 +535,7 @@ const HomePage: React.FC = () => {
               </div>
             ))}
           </div>
+<<<<<<< Updated upstream
 
           <div className="hero-nav">
             {heroSlides.map((_, index) => (
@@ -527,6 +600,14 @@ const HomePage: React.FC = () => {
         </section>
       </div>
     </>
+=======
+        )}
+      </section>
+
+      {/* ✅ Customer Stories also rendered server-side */}
+      <CustomerStories />
+    </div>
+>>>>>>> Stashed changes
   );
 };
 

@@ -111,9 +111,11 @@ export default function Profile() {
               <DropdownMenuSeparator />
 
               <div className="p-2">
-                <Button className="w-full bg-black text-white hover:bg-gray-900">
-                  Login
-                </Button>
+                <Link href="/auth">
+                  <Button className="w-full bg-black text-white hover:bg-gray-900">
+                    Login
+                  </Button>
+                </Link>
               </div>
             </>
           )}

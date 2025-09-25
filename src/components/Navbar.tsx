@@ -14,10 +14,17 @@ import {
 } from "@/components/ui/popover";
 
 export default function Navbar() {
-    const { isLoggedIn, user, logout } = useUserStore();
+  const { isLoggedIn, user, logout } = useUserStore();
 
   const [mobileMenuOpened, setMobileMenuOpened] = useState(false);
-  const navLinks = ["Collections", "About", "Services", "Contact"];
+
+  // Updated navLinks with routes
+  const navLinks = [
+    { name: "Collections", href: "/products" },
+    { name: "About", href: "/about" },
+    { name: "Services", href: "/services" },
+    { name: "Contact", href: "/contact" },
+  ];
 
   // ✅ get cart + user state
   const { cart, fetchCart, removeFromCart } = useCart();
@@ -45,12 +52,12 @@ export default function Navbar() {
           {/* Desktop Links */}
           <ul className="hidden md:flex gap-8">
             {navLinks.map((item) => (
-              <li key={item}>
+              <li key={item.name}>
                 <Link
-                  href="#"
+                  href={item.href}
                   className="text-[var(--color-primary)] font-body font-medium"
                 >
-                  {item}
+                  {item.name}
                 </Link>
               </li>
             ))}
@@ -61,9 +68,13 @@ export default function Navbar() {
             <button aria-label="Search" className="p-2 rounded-full hover:bg-gray-100">
               <Search size={20} color="var(--color-primary)" />
             </button>
-            <button aria-label="Wishlist" className="p-2 rounded-full hover:bg-gray-100">
-              <Heart size={20} color="var(--color-primary)" />
-            </button>
+
+            {/* Wishlist link */}
+            <Link href="/wishlist" aria-label="Wishlist">
+              <div className="p-2 rounded-full hover:bg-gray-100">
+                <Heart size={20} color="var(--color-primary)" />
+              </div>
+            </Link>
 
             {/* 🛍️ Cart Dropdown */}
             <Popover>
@@ -172,7 +183,7 @@ export default function Navbar() {
           />
           <div className="ml-auto w-64 bg-[var(--color-background)] h-full p-4 flex flex-col gap-6">
             <div className="flex justify-between items-center">
-              <Link href="#" className="flex items-center gap-2">
+              <Link href="/" className="flex items-center gap-2">
                 <Image src="/icon.svg" alt="LUMIÈRE Logo" width={30} height={30} />
                 <h4 className="font-heading text-lg">LUMIÈRE</h4>
               </Link>
@@ -190,12 +201,12 @@ export default function Navbar() {
             <div className="flex flex-col gap-3">
               {navLinks.map((item) => (
                 <Link
-                  key={item}
-                  href="#"
+                  key={item.name}
+                  href={item.href}
                   onClick={() => setMobileMenuOpened(false)}
                   className="text-[var(--color-primary)] font-body font-medium text-lg"
                 >
-                  {item}
+                  {item.name}
                 </Link>
               ))}
             </div>
