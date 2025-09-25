@@ -21,6 +21,17 @@ interface CartState {
   reduceQuantity: (productId: string) => Promise<void>;
   clearCart: () => Promise<void>;
 }
+type BackendCartItem = {
+  product: {
+    id: string;
+    name: string;
+    price: string;
+    image?: string;
+    category_id?: string;
+  };
+  quantity: number;
+};
+
 
 export const useCart = create<CartState>((set, get) => ({
   cart: [],
@@ -28,7 +39,7 @@ export const useCart = create<CartState>((set, get) => ({
   fetchCart: async () => {
     try {
       const res = await clientApi.get("/cart");
-      const items = res.data.items.map((item: any) => ({
+      const items = res.data.items.map((item: BackendCartItem) => ({
         id: item.product.id,
         name: item.product.name,
         price: Number(item.product.price),
@@ -44,15 +55,25 @@ export const useCart = create<CartState>((set, get) => ({
   },
 
   addToCart: async ({ productId, quantity = 1 }) => {
-    try {
-      await clientApi.post("/cart/add", { productId, quantity });
-      await get().fetchCart();
-      toast.success("Added to cart");
-    } catch (err) {
-      console.error("Error adding to cart:", err);
-      toast.error("Failed to add product");
-    }
-  },
+  try {
+    const res = await clientApi.post("/cart/add", { productId, quantity });
+    set((state) => ({
+      cart: [...state.cart, {
+        id: res.data.product.id,
+        name: res.data.product.name,
+        price: Number(res.data.product.price),
+        quantity: res.data.quantity,
+        image: res.data.product.image || "/placeholder.png",
+        category: res.data.product.category_id,
+      }]
+    }));
+    toast.success("Added to cart");
+  } catch (err) {
+    console.error("Error adding to cart:", err);
+    toast.error("Failed to add product");
+  }
+},
+
 
   removeFromCart: async (productId: string) => {
     try {
@@ -77,16 +98,14 @@ export const useCart = create<CartState>((set, get) => ({
   },
 
   clearCart: async () => {
-    try {
-      const confirmed = confirm("Are you sure you want to clear the cart?");
-      if (!confirmed) return;
+  try {
+    await clientApi.delete("/cart/clear");
+    set({ cart: [] });
+    toast.success("Cart cleared");
+  } catch (err) {
+    console.error("Error clearing cart:", err);
+    toast.error("Failed to clear cart");
+  }
+},
 
-      await clientApi.delete("/cart/clear");
-      set({ cart: [] });
-      toast.success("Cart cleared");
-    } catch (err) {
-      console.error("Error clearing cart:", err);
-      toast.error("Failed to clear cart");
-    }
-  },
 }));
