@@ -1,30 +1,13 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Star, ShoppingBag, Heart } from "lucide-react";
-import { clientApi } from "@/utils/axios";
+import { toast } from "sonner";
 import debounce from "lodash.debounce";
 import SearchAndFilters from "./SearchAndFilters";
-import Image from "next/image";
-import Link from "next/link";
-import { toast } from "sonner";
-
-interface Product {
-  id: number | string;
-  name: string;
-  price: number;
-  originalPrice?: number;
-  discount?: number;
-  rating: number;
-  reviews: number;
-  image: string;
-  material?: string;
-  stone?: string;
-  collection?: string;
-}
+import ProductCard, { Product } from "./ProductCard";
+import { clientApi } from "@/utils/axios";
+import { useWishlist } from "@/store/useWishlist";
+import { useUserStore } from "@/store/useUserStore";
 
 interface ProductListProps {
   initialProducts: Product[];
@@ -32,25 +15,18 @@ interface ProductListProps {
 
 export default function ProductList({ initialProducts }: ProductListProps) {
   const [products, setProducts] = useState<Product[]>(initialProducts);
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [searchTerm, setSearchTerm] = useState("");
   const [minPrice, setMinPrice] = useState<number | undefined>();
   const [maxPrice, setMaxPrice] = useState<number | undefined>();
   const [category, setCategory] = useState<string>("");
   const [sortBy, setSortBy] = useState("featured");
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const { isLoggedIn, loading } = useUserStore();
+  const { fetchWishlist } = useWishlist();
 
-  const handleAddToCart = async (productId: number | string) => {
-    try {
-      const res = await clientApi.post("/cart/add", {
-        product_id: productId,
-        quantity: 1,
-      });
-      toast.success("Added to cart!");
-    } catch (err: any) {
-      const msg = err.response?.data?.error || "Failed to add to cart";
-      toast.error(msg);
-    }
-  };
+  useEffect(() => {
+    if (!loading && isLoggedIn) fetchWishlist();
+  }, [loading, isLoggedIn]);
 
   const fetchProducts = useCallback(
     async (params?: {
@@ -64,17 +40,15 @@ export default function ProductList({ initialProducts }: ProductListProps) {
           setProducts(initialProducts);
           return;
         }
-
         const query = new URLSearchParams(
           Object.entries(params)
             .filter(([_, v]) => v !== undefined && v !== "")
             .map(([k, v]) => [k, String(v)])
         );
-
         const res = await clientApi.get(`/search?${query.toString()}`);
         setProducts(res.data);
-      } catch (error) {
-        console.error("Error fetching products:", error);
+      } catch (err) {
+        console.error("Error fetching products:", err);
         setProducts([]);
       }
     },
@@ -93,9 +67,7 @@ export default function ProductList({ initialProducts }: ProductListProps) {
 
   useEffect(() => {
     const handler = debouncedSearchRef.current;
-    return () => {
-      handler.cancel();
-    };
+    return () => handler.cancel();
   }, []);
 
   const handleSort = (value: string) => {
@@ -109,7 +81,7 @@ export default function ProductList({ initialProducts }: ProductListProps) {
         sorted.sort((a, b) => b.price - a.price);
         break;
       case "rating":
-        sorted.sort((a, b) => b.rating - a.rating);
+        sorted.sort((a, b) => (b.rating || 0) - (a.rating || 0));
         break;
       case "name":
         sorted.sort((a, b) => a.name.localeCompare(b.name));
@@ -120,17 +92,8 @@ export default function ProductList({ initialProducts }: ProductListProps) {
     setProducts(sorted);
   };
 
-  const renderStars = (rating: number) =>
-    [...Array(5)].map((_, i) => (
-      <Star
-        key={i}
-        className={`h-4 w-4 ${i < Math.floor(rating) ? "text-accent" : "text-secondary"}`}
-      />
-    ));
-
   return (
     <div className="space-y-8 font-body">
-      {/* Search & Filter Toolbar */}
       <SearchAndFilters
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
@@ -148,7 +111,6 @@ export default function ProductList({ initialProducts }: ProductListProps) {
         onSortChange={handleSort}
       />
 
-      {/* Product Grid/List */}
       {products.length > 0 ? (
         <div
           className={`grid gap-6 ${
@@ -157,61 +119,8 @@ export default function ProductList({ initialProducts }: ProductListProps) {
               : "grid-cols-1"
           }`}
         >
-          {products.map((product, index) => (
-            <Link href={`/products/${product.id}`} key={product.id} className="group">
-              <Card className="relative bg-background/80 border border-secondary/30 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden cursor-pointer">
-                <CardHeader className="p-0">
-                  <div className="relative aspect-square overflow-hidden">
-                    <Image
-                      height={500}
-                      width={500}
-                      src={product.image}
-                      alt={product.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                    {product.discount && (
-                      <Badge className="absolute top-3 left-3 bg-accent text-primary-foreground px-3 py-1 text-xs font-semibold rounded-md shadow-md">
-                        {product.discount}% OFF
-                      </Badge>
-                    )}
-                  </div>
-                </CardHeader>
-
-                <CardContent className="p-6 space-y-4">
-                  <h3 className="font-heading text-lg text-foreground line-clamp-2">
-                    {product.name}
-                  </h3>
-                  <div className="flex items-center gap-2">
-                    {renderStars(product.rating)}
-                    <span className="text-sm text-secondary font-medium">{product.rating}</span>
-                    <span className="text-xs text-secondary">({product.reviews} reviews)</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="text-2xl font-heading font-bold text-accent">
-                      ₹{product.price.toLocaleString()}
-                    </span>
-                    {product.originalPrice && (
-                      <span className="text-lg line-through text-secondary font-medium">
-                        ₹{product.originalPrice.toLocaleString()}
-                      </span>
-                    )}
-                  </div>
-                </CardContent>
-
-                <CardFooter className="p-6 pt-0">
-                  <Button
-                    onClick={(e) => {
-                      e.preventDefault(); 
-                      handleAddToCart(product.id);
-                    }}
-                    className="w-full h-12 bg-accent hover:bg-accent/90 text-primary-foreground font-heading font-semibold rounded-lg shadow-md transition-all"
-                  >
-                    <ShoppingBag className="h-5 w-5 mr-2" />
-                    Add to Cart
-                  </Button>
-                </CardFooter>
-              </Card>
-            </Link>
+          {products.map((product) => (
+            <ProductCard key={product.id} product={product} />
           ))}
         </div>
       ) : (

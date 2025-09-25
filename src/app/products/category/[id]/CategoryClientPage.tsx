@@ -9,6 +9,7 @@ import { clientApi } from "@/utils/axios";
 import Image from "next/image";
 import Link from "next/link";
 import { toast } from "sonner";
+import ProductCard from "@/components/ProductCard";
 
 interface ProductImage {
   id: string;
@@ -87,70 +88,7 @@ export default function CategoryClientPage({ categoryId }: { categoryId: string 
 
       <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {products.map((product) => (
-          <Link href={`/products/${product.id}`} key={product.id} className="group">
-            <Card className="relative bg-background/80 border border-secondary/30 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden cursor-pointer">
-              <CardHeader className="p-0">
-                <div className="relative aspect-square overflow-hidden">
-                  {product.images.length > 0 ? (
-                    <Image
-                      height={500}
-                      width={500}
-                      src={product.images[0].url}
-                      alt={product.images[0].alt_text || product.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-500">
-                      No Image
-                    </div>
-                  )}
-                  {product.discount && (
-                    <Badge className="absolute top-3 left-3 bg-accent text-primary-foreground px-3 py-1 text-xs font-semibold rounded-md shadow-md">
-                      {product.discount}% OFF
-                    </Badge>
-                  )}
-                </div>
-              </CardHeader>
-
-              <CardContent className="p-6 space-y-4">
-                <h3 className="font-heading text-lg text-foreground line-clamp-2">
-                  {product.name}
-                </h3>
-                <div className="flex items-center gap-2">
-                  {renderStars(product.rating ?? 0)}
-                  {product.rating && (
-                    <span className="text-sm text-secondary font-medium">{product.rating}</span>
-                  )}
-                  {product.reviews && (
-                    <span className="text-xs text-secondary">({product.reviews} reviews)</span>
-                  )}
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-2xl font-heading font-bold text-accent">
-                    ₹{product.price.toLocaleString()}
-                  </span>
-                  {product.originalPrice && (
-                    <span className="text-lg line-through text-secondary font-medium">
-                      ₹{product.originalPrice.toLocaleString()}
-                    </span>
-                  )}
-                </div>
-              </CardContent>
-
-              <CardFooter className="p-6 pt-0">
-                <Button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    handleAddToCart(product.id);
-                  }}
-                  className="w-full h-12 bg-accent hover:bg-accent/90 text-primary-foreground font-heading font-semibold rounded-lg shadow-md transition-all"
-                >
-                  <ShoppingBag className="h-5 w-5 mr-2" />
-                  Add to Cart
-                </Button>
-              </CardFooter>
-            </Card>
-          </Link>
+          <ProductCard key={product.id} product={product} />
         ))}
       </div>
     </div>
