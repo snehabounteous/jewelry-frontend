@@ -40,14 +40,20 @@ export default async function PLPPage() {
   const products = await getProducts();
 
   const transformed = products.map((p) => ({
-    id: p.id, // keep as string
+    id: p.id,
     name: p.name,
     price: Number(p.price),
     originalPrice: Number(p.price) + 500,
     discount: 10,
     rating: 4.5,
     reviews: 12,
-    image: p.images?.[0] || "/placeholder.png",
+    images: [
+      {
+        id: `${p.id}-0`,
+        url: p.images?.[0] || "/placeholder.png",
+        alt_text: p.name,
+      },
+    ],
   }));
 
   return (

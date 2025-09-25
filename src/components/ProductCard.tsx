@@ -1,18 +1,31 @@
 "use client";
 
-import Link from "next/link";
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Star, ShoppingBag, Heart } from "lucide-react";
 import Image from "next/image";
-import { Heart } from "lucide-react";
+import { clientApi } from "@/utils/axios";
+import { toast } from "sonner";
+import { useWishlist } from "@/store/useWishlist";
+import { useUserStore } from "@/store/useUserStore";
 
-interface Product {
-  id: number;
+interface ProductImage {
+  id: string;
+  url: string;
+  alt_text?: string;
+}
+
+export interface Product {
+  id: string | number;
   name: string;
-  price: string;
-  image: string;
-  category: string;
-  isNew?: boolean;
-  isBestseller?: boolean;
-  isExclusive?: boolean;
+  price: number;
+  originalPrice?: number;
+  discount?: number;
+  rating?: number;
+  reviews?: number;
+  images: ProductImage[];
 }
 
 interface ProductCardProps {
@@ -20,76 +33,115 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ product }: ProductCardProps) {
-  // Determine which badge to show (priority: New > Bestseller > Exclusive)
-  let badgeText = "";
-  let badgeColor = "";
-  if (product.isNew) {
-    badgeText = "New";
-    badgeColor = "var(--color-accent)";
-  } else if (product.isBestseller) {
-    badgeText = "Bestseller";
-    badgeColor = "#e11d48";
-  } else if (product.isExclusive) {
-    badgeText = "Exclusive";
-    badgeColor = "#7c3aed";
-  }
+  const rating = product.rating ?? 0;
+  const reviews = product.reviews ?? 0;
+  const images = product.images ?? [];
+
+  const { items, add, remove, isInWishlist, fetchWishlist } = useWishlist();
+  const { isLoggedIn } = useUserStore();
+  const [isWishlisted, setIsWishlisted] = useState(false);
+  useEffect(() => {
+    if (isLoggedIn) fetchWishlist();
+  }, [isLoggedIn, fetchWishlist]);
+
+  // Update local state whenever wishlist changes
+  useEffect(() => {
+    setIsWishlisted(isInWishlist(String(product.id)));
+  }, [items, product.id, isInWishlist]);
+  const handleAddToCart = async () => {
+    try {
+      await clientApi.post("/cart/add", { product_id: product.id, quantity: 1 });
+      toast.success("Added to cart!");
+    } catch (err: any) {
+      toast.error(err.response?.data?.error || "Failed to add to cart");
+    }
+  };
+
+  const handleWishlistToggle = async () => {
+    try {
+      if (isWishlisted) {
+        await clientApi.post("/wishlist/remove", { product_id: product.id });
+        remove(String(product.id));
+        toast.success("Removed from wishlist");
+      } else {
+        await clientApi.post("/wishlist/add", { product_id: product.id });
+        add(String(product.id));
+        toast.success("Added to wishlist");
+      }
+    } catch (err: any) {
+      toast.error(err.response?.data?.error || "Wishlist action failed");
+    }
+  };
 
   return (
-    <Link href={`/products/${product.id}`} className="text-inherit no-underline">
-      <div
-        className="relative rounded-xl bg-white/80 backdrop-blur-[20px] border border-white/20 cursor-pointer transition-all duration-300 hover:-translate-y-2.5 hover:shadow-[0_20px_60px_rgba(0,0,0,0.15)]"
-      >
-        {/* Image Section */}
-        <div className="relative">
-          <Image
-            src={product.image}
-            alt={product.name}
-            width={400}
-            height={250}
-            className="object-cover w-full h-[250px] rounded-t-xl"
-          />
-
-          {/* Badge */}
-          {badgeText && (
-            <span
-              className="absolute top-3 left-3 px-2 py-1 rounded text-white text-xs font-semibold"
-              style={{ background: badgeColor }}
-            >
-              {badgeText}
-            </span>
+    <Card className="relative bg-background/80 border border-secondary/30 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden cursor-pointer">
+      <CardHeader className="p-0 relative">
+        <div className="relative aspect-square overflow-hidden">
+          {images.length > 0 ? (
+            <Image
+              height={500}
+              width={500}
+              src={images[0].url}
+              alt={images[0].alt_text || product.name}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-500">
+              No Image
+            </div>
           )}
 
-          {/* Heart Icon */}
-          <div
-            className="absolute top-3 right-3 w-8 h-8 rounded-full flex items-center justify-center"
-            style={{ background: "rgba(255, 255, 255, 0.9)", color: "var(--color-primary)" }}
-          >
-            <Heart size={18} />
-          </div>
-        </div>
+          {product.discount && (
+            <Badge className="absolute top-3 left-3 bg-accent text-primary-foreground px-3 py-1 text-xs font-semibold rounded-md shadow-md">
+              {product.discount}% OFF
+            </Badge>
+          )}
 
-        {/* Text Section */}
-        <div className="flex flex-col gap-3 p-4">
-          <span
-            className="text-[var(--color-accent)] text-sm font-medium"
-            style={{ fontFamily: "var(--font-body)" }}
-          >
-            {product.category}
-          </span>
-          <h4
-            className="text-base font-normal"
-            style={{ fontFamily: "var(--font-heading)" }}
-          >
-            {product.name}
-          </h4>
-          <span
-            className="text-[var(--color-accent)] text-lg font-semibold"
-            style={{ fontFamily: "var(--font-body)" }}
-          >
-            {product.price}
-          </span>
+          <Heart
+            className={`absolute top-3 right-3 h-5 w-5 cursor-pointer transition-colors ${
+              isWishlisted ? "text-red-500" : "text-gray-400 hover:text-red-500"
+            }`}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleWishlistToggle();
+            }}
+          />
         </div>
-      </div>
-    </Link>
+      </CardHeader>
+
+      <CardContent className="p-6 space-y-4">
+        <h3 className="font-heading text-lg text-foreground line-clamp-2">{product.name}</h3>
+        <div className="flex items-center gap-2">
+          {[...Array(5)].map((_, i) => (
+            <Star
+              key={i}
+              className={`h-4 w-4 ${i < Math.floor(rating) ? "text-accent" : "text-secondary"}`}
+            />
+          ))}
+          <span className="text-sm text-secondary font-medium">{rating}</span>
+          <span className="text-xs text-secondary">({reviews} reviews)</span>
+        </div>
+        <div className="flex items-center gap-3">
+          <span className="text-2xl font-heading font-bold text-accent">
+            ₹{new Intl.NumberFormat("en-IN").format(product.price)}
+          </span>
+          {product.originalPrice && (
+            <span className="text-lg line-through text-secondary font-medium">
+              ₹{new Intl.NumberFormat("en-IN").format(product.originalPrice)}
+            </span>
+          )}
+        </div>
+      </CardContent>
+
+      <CardFooter className="p-6 pt-0">
+        <Button
+          onClick={handleAddToCart}
+          className="w-full h-12 bg-accent hover:bg-accent/90 text-primary-foreground font-heading font-semibold rounded-lg shadow-md transition-all"
+        >
+          <ShoppingBag className="h-5 w-5 mr-2" />
+          Add to Cart
+        </Button>
+      </CardFooter>
+    </Card>
   );
 }
