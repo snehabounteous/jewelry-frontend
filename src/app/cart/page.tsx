@@ -9,11 +9,38 @@ import { useCart } from "@/store/useCart";
 import Image from "next/image";
 import { useEffect } from "react";
 import { Trash2, ShoppingBag, Sparkles, Truck, Gift } from "lucide-react";
-import { useRouter } from "next/navigation";
+import {useRouter} from "next/navigation";
+
+// types.ts
+export type CartProduct = {
+  id: string;
+  name: string;
+  description: string;
+  price: string; // string from backend
+  category_id: string;
+  stock: number;
+  created_at: string;
+  updated_at: string;
+};
+
+export type CartItem = {
+  id: string;
+  quantity: number;
+  product: CartProduct;
+};
+
+export type Cart = {
+  id: string;
+  user_id: string;
+  created_at: string;
+  updated_at: string;
+  items: CartItem[];
+};
+
 
 export default function CartPage() {
   const { cart, fetchCart, removeFromCart, reduceQuantity, clearCart } = useCart();
-  const router = useRouter(); 
+  const router = useRouter();
 
   useEffect(() => {
     fetchCart();
@@ -30,7 +57,7 @@ export default function CartPage() {
               </div>
               <h2 className="text-2xl font-bold mb-2" style={{ fontFamily: 'var(--font-heading)', color: 'var(--color-foreground)' }}>Your cart is empty</h2>
               <p className="mb-8" style={{ color: 'var(--color-secondary)', fontFamily: 'var(--font-body)' }}>Discover our exquisite jewelry collection and add some sparkle to your cart</p>
-              <Button className="font-semibold px-8" style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-primary)', borderRadius: 'var(--radius)' }} onClick={() => router.push("/")}>
+              <Button className="font-semibold px-8" style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-primary)', borderRadius: 'var(--radius)' }}>
                 Continue Shopping
               </Button>
             </CardContent>
@@ -226,7 +253,6 @@ export default function CartPage() {
 
                 <div className="space-y-3 pt-4">
                   <Button 
-                    onClick={() => router.push("/checkout")}
                     className="w-full font-semibold py-3 shadow-lg hover:shadow-xl transition-all duration-300"
                     style={{ 
                       backgroundColor: 'var(--color-accent)', 
@@ -235,12 +261,12 @@ export default function CartPage() {
                       fontFamily: 'var(--font-body)'
                     }}
                     size="lg"
+                    onClick={() => router.push("/checkout")}
                   >
                     Proceed to Checkout
                   </Button>
                   
                   <Button 
-                   onClick={() => router.push("/")}
                     variant="outline" 
                     className="w-full border-2 font-medium hover:bg-opacity-10"
                     style={{ 
