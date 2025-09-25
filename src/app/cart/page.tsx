@@ -9,9 +9,38 @@ import { useCart } from "@/store/useCart";
 import Image from "next/image";
 import { useEffect } from "react";
 import { Trash2, ShoppingBag, Sparkles, Truck, Gift } from "lucide-react";
+import {useRouter} from "next/navigation";
+
+// types.ts
+export type CartProduct = {
+  id: string;
+  name: string;
+  description: string;
+  price: string; // string from backend
+  category_id: string;
+  stock: number;
+  created_at: string;
+  updated_at: string;
+};
+
+export type CartItem = {
+  id: string;
+  quantity: number;
+  product: CartProduct;
+};
+
+export type Cart = {
+  id: string;
+  user_id: string;
+  created_at: string;
+  updated_at: string;
+  items: CartItem[];
+};
+
 
 export default function CartPage() {
   const { cart, fetchCart, removeFromCart, reduceQuantity, clearCart } = useCart();
+  const router = useRouter();
 
   useEffect(() => {
     fetchCart();
@@ -232,6 +261,7 @@ export default function CartPage() {
                       fontFamily: 'var(--font-body)'
                     }}
                     size="lg"
+                    onClick={() => router.push("/checkout")}
                   >
                     Proceed to Checkout
                   </Button>
