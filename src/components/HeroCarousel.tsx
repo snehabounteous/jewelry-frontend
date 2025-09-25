@@ -3,11 +3,13 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
+
 interface HeroSlide {
   id: number;
   title: string;
   subtitle: string;
   ctaText: string;
+  imageUrl: string; // background image
 }
 
 interface Props {
@@ -15,8 +17,9 @@ interface Props {
 }
 
 const HeroCarousel: React.FC<Props> = ({ slides }) => {
-    const router= useRouter()
+  const router = useRouter();
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [offset, setOffset] = useState(0); // for parallax effect
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -24,6 +27,14 @@ const HeroCarousel: React.FC<Props> = ({ slides }) => {
     }, 5000);
     return () => clearInterval(interval);
   }, [slides.length]);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setOffset(window.scrollY * 0.3); // slower movement for parallax
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const handleDotClick = (index: number) => setCurrentSlide(index);
 
@@ -36,17 +47,32 @@ const HeroCarousel: React.FC<Props> = ({ slides }) => {
             index === currentSlide ? "opacity-100" : "opacity-0"
           }`}
         >
-          <div className={`absolute inset-0 bg-gradient-to-br from-yellow-600/80 to-gray-900/60`} />
+          {/* Parallax Background */}
+          <div
+            className="absolute inset-0 bg-cover bg-center"
+            style={{
+              backgroundImage: `url(${slide.imageUrl})`,
+              transform: `translateY(${offset}px)`,
+              transition: "transform 0.1s",
+            }}
+          />
+
+          {/* Overlay */}
+          <div className="absolute inset-0 bg-gradient-to-br from-yellow-600/40 to-gray-900/60" />
+
+          {/* Content */}
           <div className="relative z-10 flex items-center justify-center h-full">
             <div className="text-center text-white max-w-4xl px-8">
-              
-                <h1 className="text-5xl md:text-7xl font-light mb-4 leading-tight">
-                  {slide.title}
-                </h1>
+              <h1 className="text-5xl md:text-7xl font-light mb-4 leading-tight">
+                {slide.title}
+              </h1>
               <p className="text-xl md:text-2xl font-normal mb-8 opacity-90 max-w-3xl mx-auto">
                 {slide.subtitle}
               </p>
-              <Button className="bg-yellow-600 hover:bg-yellow-500 text-gray-900 px-8 py-3" onClick={() => router.push("/products")}>
+              <Button
+                className="bg-yellow-600 hover:bg-yellow-500 text-gray-900 px-8 py-3"
+                onClick={() => router.push("/products")}
+              >
                 {slide.ctaText}
               </Button>
             </div>
@@ -60,7 +86,9 @@ const HeroCarousel: React.FC<Props> = ({ slides }) => {
           <button
             key={index}
             className={`w-3 h-3 rounded-full border-0 transition-all duration-300 ${
-              index === currentSlide ? "bg-yellow-600 scale-125" : "bg-white/50 hover:bg-white/70"
+              index === currentSlide
+                ? "bg-yellow-600 scale-125"
+                : "bg-white/50 hover:bg-white/70"
             }`}
             onClick={() => handleDotClick(index)}
           />
