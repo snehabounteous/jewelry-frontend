@@ -21,6 +21,7 @@ interface JewelryCategory {
 const HomePage: React.FC = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [currentCategoryPosition, setCurrentCategoryPosition] = useState(0);
+  const [amount, setAmount] = useState(1000);
 
   const heroSlides: HeroSlide[] = [
     {
@@ -525,6 +526,19 @@ const HomePage: React.FC = () => {
             </div>
           </div>
         </section>
+        <label>
+        Amount (smallest unit):{" "}
+        <input
+          type="number"
+          value={amount}
+          onChange={(e) => setAmount(Number(e.target.value || 0))}
+          style={{ marginLeft: 8 }}
+        />
+      </label>
+
+      <div style={{ marginTop: 16 }}>
+        <StripeCheckout amountCents={amount} currency="usd" />
+      </div>
       </div>
     </>
   );
