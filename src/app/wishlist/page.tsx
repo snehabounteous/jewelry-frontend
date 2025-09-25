@@ -1,4 +1,3 @@
-// src/app/wishlist/page.tsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -7,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ShoppingCart, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { clientApi } from "@/utils/axios";
+import { toast } from "sonner";
 
 interface WishlistItem {
   id: string;
@@ -59,10 +59,11 @@ export default function WishlistPage() {
         product_id: productId,
         quantity: 1,
       });
-      alert("Item added to cart 🛒");
+
+      toast.success("Item added to cart 🛒");
     } catch (err) {
       console.error("Error adding to cart:", err);
-      alert("Failed to add item to cart");
+      toast.error("Failed to add item to cart");
     }
   };
 
@@ -70,13 +71,9 @@ export default function WishlistPage() {
     fetchWishlist();
   }, []);
 
-  if (loading) {
-    return <p className="text-center py-10">Loading wishlist...</p>;
-  }
-
-  if (items.length === 0) {
+  if (loading) return <p className="text-center py-10">Loading wishlist...</p>;
+  if (items.length === 0)
     return <p className="text-center py-10 text-gray-500">Your wishlist is empty.</p>;
-  }
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10">
@@ -105,10 +102,7 @@ export default function WishlistPage() {
                 </span>
               </div>
               <div className="flex items-center space-x-2">
-                <Button
-                  className="flex-1"
-                  onClick={() => addToCart(product.id)}
-                >
+                <Button className="flex-1" onClick={() => addToCart(product.id)}>
                   <ShoppingCart size={16} className="mr-2" />
                   Add to Cart
                 </Button>
