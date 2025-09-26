@@ -12,30 +12,31 @@
   "env": {
     "browser": true,
     "es2021": true,
-    "node": true
+    "node": true,
+    "jest/globals": true
   },
   "extends": [
     "next/core-web-vitals",
+    "next/typescript",
     "eslint:recommended",
     "plugin:@typescript-eslint/recommended",
     "plugin:react/recommended",
     "plugin:react-hooks/recommended",
     "plugin:jsx-a11y/recommended",
-    "plugin:prettier/recommended"
+    "plugin:prettier/recommended",
+    "plugin:jest/recommended",
+    "plugin:jest-dom/recommended",
+    "plugin:testing-library/react"
   ],
-  "plugins": ["@typescript-eslint", "react", "react-hooks", "jsx-a11y", "prettier"],
+  "plugins": ["@typescript-eslint", "react", "react-hooks", "jsx-a11y", "prettier", "jest", "testing-library", "jest-dom"],
   "rules": {
     "prettier/prettier": "warn",
-
-    "react/react-in-jsx-scope": "off", 
-    "react/prop-types": "off", 
-    
+    "react/react-in-jsx-scope": "off",
+    "react/prop-types": "off",
     "@typescript-eslint/no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }],
     "@typescript-eslint/explicit-function-return-type": "off",
-
     "jsx-a11y/anchor-is-valid": "off",
     "jsx-a11y/no-autofocus": "warn",
-    
     "no-console": ["warn", { "allow": ["warn", "error"] }],
     "no-debugger": "warn"
   },
