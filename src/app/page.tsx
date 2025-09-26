@@ -1,6 +1,7 @@
 import React from "react";
 import HeroCarousel from "../components/HeroCarousel";
 import CategoriesCarousel from "../components/CategoriesCarousel";
+
 import MostGiftedCarousel from "../components/MostGiftedCarousel";
 import CustomerStories from "../components/CustomerStories";
 import axios from "axios";
@@ -113,6 +114,7 @@ const HomePage = async () => {
             <p className="text-gray-600">No categories available.</p>
           </div>
         )}
+
       </section>
 
       {/* Most Gifted Carousel */}
