@@ -1,11 +1,13 @@
 import React from "react";
 import HeroCarousel from "../components/HeroCarousel";
 import CategoriesCarousel from "../components/CategoriesCarousel";
+
+import MostGiftedCarousel from "../components/MostGiftedCarousel";
 import CustomerStories from "../components/CustomerStories";
-import { serverApi } from "../utils/axios";
-import image1 from "../../public/images/jewel1.webp"
-import image2 from "../../public/images/jewel2.webp"
-import image3 from "../../public/images/jewel3.webp"
+import axios from "axios";
+import image1 from "../../public/images/jewel1.webp";
+import image2 from "../../public/images/jewel2.webp";
+import image3 from "../../public/images/jewel3.webp";
 
 interface HeroSlide {
   id: number;
@@ -21,6 +23,17 @@ interface Category {
   description: string;
   image: string;
   slug: string;
+}
+
+export interface Product {
+  id: string | number;
+  name: string;
+  price: number;
+  originalPrice?: number;
+  discount?: number;
+  rating?: number;
+  reviews?: number;
+  images: { id: string; url: string; alt_text?: string }[];
 }
 
 const heroSlides: HeroSlide[] = [
@@ -47,18 +60,33 @@ const heroSlides: HeroSlide[] = [
   },
 ];
 
-async function getCategories() {
-  const res = await serverApi.get("/categories");
-  return res.data as Category[];
+async function getCategories(): Promise<Category[]> {
+  try {
+    const res = await axios.get("https://jewelry-backend-4tud.onrender.com/api/v1/categories");
+    return res.data;
+  } catch (err) {
+    console.error("Failed to fetch categories", err);
+    return [];
+  }
+}
+
+async function getMostGiftedProducts(): Promise<Product[]> {
+  try {
+    const res = await axios.get(
+      "https://jewelry-backend-4tud.onrender.com/api/v1/products/category/f0e9f46f-02c7-4de5-84ca-ae40dd6aeae2"
+    );
+    return res.data;
+  } catch (err) {
+    console.error("Failed to fetch most gifted products", err);
+    return [];
+  }
 }
 
 const HomePage = async () => {
-  let categories: Category[] = [];
-  try {
-    categories = await getCategories();
-  } catch (err) {
-    console.error("Failed to fetch categories", err);
-  }
+  const [categories, mostGifted] = await Promise.all([
+    getCategories(),
+    getMostGiftedProducts(),
+  ]);
 
   return (
     <div className="font-[Playfair_Display]">
@@ -86,9 +114,23 @@ const HomePage = async () => {
             <p className="text-gray-600">No categories available.</p>
           </div>
         )}
+
       </section>
 
-      {/* ✅ Customer Stories also rendered server-side */}
+      {/* Most Gifted Carousel */}
+      <section className="py-24 px-[5%] mx-auto">
+        <h2 className="text-4xl md:text-5xl font-light text-gray-900 mb-12 text-center">
+          Most Gifted
+        </h2>
+        {mostGifted.length > 0 ? (
+          <MostGiftedCarousel products={mostGifted} />
+        ) : (
+          <div className="text-center py-16">
+            <p className="text-gray-600">No popular products available.</p>
+          </div>
+        )}
+      </section>
+
       <CustomerStories />
     </div>
   );
