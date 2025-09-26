@@ -1,6 +1,6 @@
 import React from "react";
 import HeroCarousel from "../components/HeroCarousel";
-// import CategoriesCarousel from "../components/CategoriesCarousel";
+import CategoriesCarousel from "../components/CategoriesCarousel";
 import CustomerStories from "../components/CustomerStories";
 import { serverApi } from "../utils/axios";
 import image1 from "../../public/images/jewel1.webp"
@@ -79,13 +79,13 @@ const HomePage = async () => {
           </p>
         </a>
 
-        {/* {categories.length > 0 ? (
+        {categories.length > 0 ? (
           <CategoriesCarousel categories={categories} />
         ) : (
           <div className="text-center py-16">
             <p className="text-gray-600">No categories available.</p>
           </div>
-        )} */}
+        )}
       </section>
 
       {/* ✅ Customer Stories also rendered server-side */}

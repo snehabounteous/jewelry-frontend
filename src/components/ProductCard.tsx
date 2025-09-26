@@ -10,6 +10,7 @@ import { clientApi } from "@/utils/axios";
 import { toast } from "sonner";
 import { useWishlist } from "@/store/useWishlist";
 import { useUserStore } from "@/store/useUserStore";
+import { useRouter } from "next/navigation";
 
 interface ProductImage {
   id: string;
@@ -33,6 +34,7 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ product }: ProductCardProps) {
+  const router = useRouter();
   const rating = product.rating ?? 0;
   const reviews = product.reviews ?? 0;
   const images = product.images ?? [];
@@ -73,8 +75,15 @@ export default function ProductCard({ product }: ProductCardProps) {
     }
   };
 
+  const handleCardClick = () => {
+    router.push(`/products/${product.id}`); // Navigate to PDP
+  };
+
   return (
-    <Card className="relative bg-background/80 border border-secondary/30 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden cursor-pointer">
+    <Card
+      className="relative bg-background/80 border border-secondary/30 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden cursor-pointer"
+      onClick={handleCardClick}
+    >
       <CardHeader className="p-0 relative">
         <div className="relative aspect-square overflow-hidden">
           {images.length > 0 ? (
@@ -112,15 +121,29 @@ export default function ProductCard({ product }: ProductCardProps) {
       <CardContent className="p-6 space-y-4">
         <h3 className="font-heading text-lg text-foreground line-clamp-2">{product.name}</h3>
         <div className="flex items-center gap-2">
-          {[...Array(5)].map((_, i) => (
-            <Star
-              key={i}
-              className={`h-4 w-4 ${i < Math.floor(rating) ? "text-accent" : "text-secondary"}`}
-            />
-          ))}
-          <span className="text-sm text-secondary font-medium">{rating}</span>
+          {Array.from({ length: 5 }).map((_, i) => {
+            if (rating >= i + 1) {
+              // full star
+              return (
+                <svg
+                  key={i}
+                  className="h-4 w-4 text-yellow-400"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.782 1.4 8.168L12 18.896l-7.334 3.864 1.4-8.168L.132 9.21l8.2-1.192L12 .587z" />
+                </svg>
+              );
+            } else {
+              // empty star
+              return <Star key={i} className="h-4 w-4 text-gray-300" />;
+            }
+          })}
+
+          <span className="text-sm text-secondary font-medium">{rating.toFixed(1)}</span>
           <span className="text-xs text-secondary">({reviews} reviews)</span>
         </div>
+
         <div className="flex items-center gap-3">
           <span className="text-2xl font-heading font-bold text-accent">
             ₹{new Intl.NumberFormat("en-IN").format(product.price)}
