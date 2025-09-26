@@ -6,6 +6,7 @@ import { serverApi } from "../utils/axios";
 import image1 from "../../public/images/jewel1.webp"
 import image2 from "../../public/images/jewel2.webp"
 import image3 from "../../public/images/jewel3.webp"
+import MostGiftedCarousel from "@/components/MostGiftedCarousel";
 
 interface HeroSlide {
   id: number;
@@ -63,7 +64,6 @@ const HomePage = async () => {
   return (
     <div className="font-[Playfair_Display]">
       <HeroCarousel slides={heroSlides} />
-
       <section className="py-24 px-[5%] mx-auto">
         <a
           href="/products"
@@ -78,7 +78,6 @@ const HomePage = async () => {
             precious moments.
           </p>
         </a>
-
         {categories.length > 0 ? (
           <CategoriesCarousel categories={categories} />
         ) : (
@@ -89,7 +88,23 @@ const HomePage = async () => {
       </section>
 
       {/* ✅ Customer Stories also rendered server-side */}
-      <CustomerStories />
+      <section className="py-24 px-[5%] mx-auto">
+        <a
+          href="/products"
+          className="block text-center mb-16 cursor-pointer hover:opacity-80 transition-opacity"
+        >
+          <h2 className="text-4xl md:text-6xl font-light text-gray-900 mb-4">
+            Check out our Earing Collection
+          </h2>
+          <p className="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+            Explore our carefully curated selection of fine jewelry, each piece
+            designed to complement your unique style and celebrate life's
+            precious moments.
+          </p>
+        </a>
+        <MostGiftedCarousel/>
+      </section>
+        <CustomerStories />
     </div>
   );
 };

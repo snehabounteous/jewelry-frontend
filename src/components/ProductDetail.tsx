@@ -14,7 +14,13 @@ interface Product {
   category_id: string;
   name: string;
   price: number;
-  images: string[];
+  images:[
+    {
+      id: string
+      url:string
+      alt_text?: string
+    }
+  ]
   stock: number;
   description: string;
 }
@@ -88,7 +94,8 @@ const { items, add, remove, isInWishlist, fetchWishlist } = useWishlist();
     <div className="flex justify-between w-full max-w-7xl mx-auto p-4 space-x-8 relative">
       {/* Product Image */}
       <Image
-        src={product.images[0] || "/placeholder.jpg"}
+      unoptimized
+        src={product.images[0].url.trimEnd() || "/placeholder.jpg"}
         alt={product.name}
         height={200}
         width={200}

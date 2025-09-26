@@ -34,6 +34,7 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ product }: ProductCardProps) {
+  console.log(product);
   const router = useRouter();
   const rating = product.rating ?? 0;
   const reviews = product.reviews ?? 0;
@@ -88,9 +89,10 @@ export default function ProductCard({ product }: ProductCardProps) {
         <div className="relative aspect-square overflow-hidden">
           {images.length > 0 ? (
             <Image
+              unoptimized
               height={500}
               width={500}
-              src={images[0].url}
+              src={images[0].url.trimEnd()}
               alt={images[0].alt_text || product.name}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
             />

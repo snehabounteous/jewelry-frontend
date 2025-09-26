@@ -6,7 +6,13 @@ interface Product {
   id: string;
   name: string;
   price: number;
-  images: string[];
+  images:[
+    {
+      id: string
+      url:string
+      alt_text?: string
+    }
+  ]
   stock: number;
   description: string;
   category_id: string;

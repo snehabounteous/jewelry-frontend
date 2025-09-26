@@ -57,6 +57,7 @@ const CategoriesCarousel: React.FC<Props> = ({ categories }) => {
               <div className="h-48 bg-gray-50 relative overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-br from-yellow-600/10 to-transparent opacity-0 group-hover:opacity-50 transition-opacity duration-300" />
                 <Image
+                  unoptimized
                   data-testid={`category-img-${category.id}`}
                   height={200}
                   width={200}

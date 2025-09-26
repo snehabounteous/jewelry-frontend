@@ -1,47 +1,46 @@
-"use client";
-
-import { Diamond, Star } from "lucide-react";
+import Image from "next/image";
+import { Star } from "lucide-react";
 
 export default function Footer() {
   return (
-    <footer style={{ background: "var(--color-primary)" }} aria-label="Footer">
-      <div className="max-w-screen-xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-wrap justify-between items-center gap-6">
+    <footer
+      className="bg-black py-16"
+      aria-label="Footer"
+    >
+      <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
+        <div className="flex flex-col md:flex-row justify-between items-center gap-8">
           {/* Brand */}
-          <div className="flex items-center gap-4" aria-label="Brand logo">
-            <div
-              className="flex items-center justify-center w-10 h-10 rounded-lg"
-              style={{
-                background: "linear-gradient(135deg, var(--color-accent) 0%, #B8860B 100%)",
-              }}
-            >
-              <Diamond size={20} color="white" strokeWidth={1.5} aria-hidden="true" />
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 relative">
+              <Image
+                src="/icon.svg"
+                alt="LUMIÈRE Logo"
+                fill
+                className="object-contain"
+              />
             </div>
-            <h3 className="text-white text-xl font-heading" style={{ letterSpacing: "0.1em" }}>
+            <h3 className="text-white text-2xl font-heading tracking-widest">
               LUMIÈRE
             </h3>
           </div>
 
-          {/* Copyright */}
-          <p
-            className="text-sm"
-            style={{ color: "rgba(255, 255, 255, 0.6)", fontFamily: "var(--font-body)", order: 2 }}
-          >
-            © 2024 Lumière. All rights reserved.
-          </p>
-
           {/* Stars */}
-          <div className="flex gap-4" aria-hidden="true">
+          <div className="flex gap-2 md:order-3" aria-hidden="true">
             {[...Array(5)].map((_, i) => (
               <Star
                 key={i}
-                data-testid="lucide-star"
-                size={16}
+                size={18}
                 fill="var(--color-accent)"
                 color="var(--color-accent)"
+                strokeWidth={1}
               />
             ))}
           </div>
+
+          {/* Copyright */}
+          <p className="text-sm text-white/70 md:order-2 text-center md:text-left">
+            © 2024 LUMIÈRE. All rights reserved.
+          </p>
         </div>
       </div>
     </footer>
