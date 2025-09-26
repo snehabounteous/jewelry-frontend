@@ -4,10 +4,7 @@ import { Diamond, Star } from "lucide-react";
 
 export default function Footer() {
   return (
-    <footer
-      style={{ background: "var(--color-primary)" }}
-      aria-label="Footer"
-    >
+    <footer style={{ background: "var(--color-primary)" }} aria-label="Footer">
       <div className="max-w-screen-xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
         <div className="flex flex-wrap justify-between items-center gap-6">
           {/* Brand */}
@@ -15,16 +12,12 @@ export default function Footer() {
             <div
               className="flex items-center justify-center w-10 h-10 rounded-lg"
               style={{
-                background:
-                  "linear-gradient(135deg, var(--color-accent) 0%, #B8860B 100%)",
+                background: "linear-gradient(135deg, var(--color-accent) 0%, #B8860B 100%)",
               }}
             >
               <Diamond size={20} color="white" strokeWidth={1.5} aria-hidden="true" />
             </div>
-            <h3
-              className="text-white text-xl font-heading"
-              style={{ letterSpacing: "0.1em" }}
-            >
+            <h3 className="text-white text-xl font-heading" style={{ letterSpacing: "0.1em" }}>
               LUMIÈRE
             </h3>
           </div>
@@ -42,6 +35,7 @@ export default function Footer() {
             {[...Array(5)].map((_, i) => (
               <Star
                 key={i}
+                data-testid="lucide-star"
                 size={16}
                 fill="var(--color-accent)"
                 color="var(--color-accent)"
