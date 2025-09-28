@@ -6,21 +6,10 @@ interface Product {
   id: string;
   name: string;
   price: number;
-  originalPrice?: number;
   images: string[];
-  rating: number;
-  reviewCount: number;
-  sizes: string[];
-  materials: string[];
-  isNew: boolean;
-  isBestseller: boolean;
-  isExclusive: boolean;
-  stockCount: number;
+  stock: number;
   description: string;
-  longDescription: string;
-  features: string[];
-  specifications: Record<string, string>;
-  category: string;
+  category_id: string;
 }
 
 interface Props {

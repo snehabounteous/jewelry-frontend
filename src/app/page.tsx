@@ -1,6 +1,6 @@
 import React from "react";
 import HeroCarousel from "../components/HeroCarousel";
-// import CategoriesCarousel from "../components/CategoriesCarousel";
+
 import CustomerStories from "../components/CustomerStories";
 import { serverApi } from "../utils/axios";
 import image1 from "../../public/images/jewel1.webp"
@@ -23,6 +23,17 @@ interface Category {
   description: string;
   image: string;
   slug: string;
+}
+
+export interface Product {
+  id: string | number;
+  name: string;
+  price: number;
+  originalPrice?: number;
+  discount?: number;
+  rating?: number;
+  reviews?: number;
+  images: { id: string; url: string; alt_text?: string }[];
 }
 
 const heroSlides: HeroSlide[] = [
@@ -49,18 +60,22 @@ const heroSlides: HeroSlide[] = [
   },
 ];
 
-async function getCategories() {
-  const res = await serverApi.get("/categories");
-  return res.data as Category[];
-}
-
-const HomePage = async () => {
-  let categories: Category[] = [];
+async function getCategories(): Promise<Category[]> {
   try {
-    categories = await getCategories();
+    const res = await serverApi.get("/categories");
+    return res.data;
   } catch (err) {
     console.error("Failed to fetch categories", err);
+    return [];
   }
+}
+
+
+
+const HomePage = async () => {
+  const [categories] = await Promise.all([
+    getCategories(),
+  ]);
 
   return (
     <div className="font-[Playfair_Display]">
@@ -103,7 +118,6 @@ const HomePage = async () => {
         <MostGiftedCarousel  />
       </section>
 
-      {/* ✅ Customer Stories also rendered server-side */}
       <CustomerStories />
     </div>
   );

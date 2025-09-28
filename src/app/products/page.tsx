@@ -41,6 +41,7 @@ export type Product = {
   }[];
 };
 
+// Fetch all products
 async function getProducts(): Promise<Product[]> {
   try {
     const res = await serverApi.get("/products/detailed/all");
