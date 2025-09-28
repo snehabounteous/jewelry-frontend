@@ -50,9 +50,14 @@ function CheckoutInner({ clientSecret, onPaymentSuccess }: CheckoutInnerProps) {
           await onPaymentSuccess(paymentIntent);
         }
       }
-    } catch (err: any) {
-      setStatus(`❌ ${err.message || "Payment failed"}`);
-    } finally {
+    } catch (err: unknown) {
+    // Safe type narrowing
+    if (err instanceof Error) {
+      setStatus(`❌ ${err.message}`);
+    } else {
+      setStatus("❌ Payment failed");
+    }
+  } finally {
       setLoading(false);
     }
   };
@@ -115,7 +120,7 @@ useEffect(() => {
       console.error("❌ error in useEffect:", err);
     }
   })();
-},[]);
+},[amountCents, currency]);
 
 
 

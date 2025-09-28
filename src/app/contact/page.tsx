@@ -196,7 +196,8 @@ export default function Contact() {
             {/* Quote Section */}
             <div className="text-center py-20 mt-20 border-t border-[#E5E5E5]">
               <blockquote className="elegant-heading text-xl md:text-2xl text-[#1C1C1C] italic mb-6">
-                "Every conversation begins a journey toward something extraordinary."
+               <p>&quot;Every conversation begins a journey toward something extraordinary.&quot;</p>
+
               </blockquote>
               <div className="w-12 h-px bg-[#D4AF37] mx-auto"></div>
             </div>

@@ -1,90 +1,108 @@
-import { render, screen, fireEvent, within } from '@testing-library/react';
-import Navbar from '../Navbar';
+import { render, screen, fireEvent } from "@testing-library/react";
+import Navbar from "@/components/Navbar";
+import { useUserStore } from "@/store/useUserStore";
+import { useCart } from "@/store/useCart";
+import { useRouter } from "next/navigation";
 
-// Mock Next.js
-jest.mock('next/link', () => ({ children }: any) => children);
-jest.mock('next/image', () => (props: any) => {
-  const { priority, ...rest } = props; // strip priority
-  return <img {...rest} />;
-});
-jest.mock('next/navigation', () => ({
-  useRouter: () => ({
-    push: jest.fn(),
-    prefetch: jest.fn(),
-  }),
+// Mock hooks
+jest.mock("@/store/useUserStore");
+jest.mock("@/store/useCart");
+jest.mock("next/navigation", () => ({
+  useRouter: jest.fn(),
 }));
 
-// Mock Zustand stores
-jest.mock('@/store/useUserStore', () => ({
-  useUserStore: () => ({
-    isLoggedIn: true,
-    user: { name: 'Test User' },
-    logout: jest.fn(),
-  }),
-}));
+describe("Navbar Component", () => {
+  const mockFetchUser = jest.fn();
+  const mockLogout = jest.fn();
+  const mockFetchCart = jest.fn();
+  const mockRemoveFromCart = jest.fn();
+  const mockPush = jest.fn();
 
-jest.mock('@/store/useCart', () => ({
-  useCart: () => ({
-    cart: [
-      { id: '1', name: 'Ring', quantity: 2, price: 1000, image: '/ring.jpg' },
-    ],
-    fetchCart: jest.fn(),
-    removeFromCart: jest.fn(),
-  }),
-}));
-
-describe('<Navbar />', () => {
-  test('renders logo and brand', () => {
-    render(<Navbar />);
-    expect(screen.getByAltText('LUMIÈRE Logo')).toBeInTheDocument();
-    expect(screen.getByText('LUMIÈRE')).toBeInTheDocument();
-  });
-
-  test('renders desktop nav links', () => {
-    render(<Navbar />);
-    ['Collections', 'About', 'Services', 'Contact'].forEach((link) => {
-      expect(screen.getByText(link)).toBeInTheDocument();
+  beforeEach(() => {
+    (useUserStore as unknown as jest.Mock).mockReturnValue({
+      user: { name: "John Doe" },
+      isLoggedIn: true,
+      fetchUser: mockFetchUser,
+      logout: mockLogout,
     });
+
+    (useCart as unknown as jest.Mock).mockReturnValue({
+      cart: [{ id: "1", name: "Ring", price: 100, quantity: 2 }],
+      fetchCart: mockFetchCart,
+      removeFromCart: mockRemoveFromCart,
+    });
+
+    (useRouter as jest.Mock).mockReturnValue({
+      push: mockPush,
+    });
+
+    jest.clearAllMocks();
   });
 
-  test('cart badge shows correct count', () => {
+  it("renders logo and navigation links", () => {
     render(<Navbar />);
-    expect(screen.getByText('2')).toBeInTheDocument();
+    expect(screen.getByText("LUMIÈRE")).toBeInTheDocument();
+    expect(screen.getByText("Collections")).toBeInTheDocument();
+    expect(screen.getByText("About")).toBeInTheDocument();
+    expect(screen.getByText("Contact")).toBeInTheDocument();
   });
 
-// test('removeFromCart button works', async () => {
-//   const { useCart } = require('@/store/useCart');
-//   const removeMock = jest.spyOn(useCart(), 'removeFromCart');
+  it("fetches user and cart on mount", () => {
+    render(<Navbar />);
+    expect(mockFetchUser).toHaveBeenCalled();
+    expect(mockFetchCart).toHaveBeenCalled();
+  });
 
-//   render(<Navbar />);
+  it("displays cart count correctly", () => {
+    render(<Navbar />);
+    expect(screen.getByText("2")).toBeInTheDocument(); // 2 items in cart
+  });
 
-//   // Open the cart
-//   const cartButton = screen.getByLabelText('Shopping Bag');
-//   fireEvent.click(cartButton);
+  it("navigates on search submit", () => {
+    render(<Navbar />);
+    const input = screen.getByPlaceholderText("Search our collection...");
+    fireEvent.change(input, { target: { value: "Ring" } });
+    fireEvent.submit(input.closest("form")!);
+    expect(mockPush).toHaveBeenCalledWith("/products?search=Ring");
+  });
 
-//   // Wait for the Remove button
-//   const removeBtn = await screen.findByText('Remove');
-//   fireEvent.click(removeBtn);
+  it("handles logout click", () => {
+    render(<Navbar />);
+    const profileButton = screen.getByText("John Doe");
+    fireEvent.click(profileButton);
+    const logoutButton = screen.getByText("Logout");
+    fireEvent.click(logoutButton);
+    expect(mockLogout).toHaveBeenCalled();
+    expect(mockPush).toHaveBeenCalledWith("/auth");
+  });
 
-//   expect(removeMock).toHaveBeenCalledWith('1');
-// });
+  it("removes item from cart", () => {
+    render(<Navbar />);
+    const removeButton = screen.getByText("Remove");
+    fireEvent.click(removeButton);
+    expect(mockRemoveFromCart).toHaveBeenCalledWith("1");
+  });
 
+  it("opens and closes mobile menu", () => {
+    render(<Navbar />);
+    const openButton = screen.getByLabelText("Open mobile menu");
+    fireEvent.click(openButton);
+    expect(screen.getByText("Collections")).toBeVisible();
 
-//   test('mobile menu opens and closes', () => {
-//   render(<Navbar />);
-  
-//   const toggleBtn = screen.getByLabelText('Open mobile menu');
-//   fireEvent.click(toggleBtn);
+    const closeButton = screen.getByLabelText("Close mobile menu");
+    fireEvent.click(closeButton);
+    expect(screen.queryByText("Collections")).not.toBeVisible();
+  });
 
-//   // Menu should now be expanded
-//   const menu = screen.getByRole('menu'); // or find closest nav/ul
-//   expect(menu).toBeVisible();
+  it("shows login button if not logged in", () => {
+    (useUserStore as unknown as jest.Mock).mockReturnValue({
+      user: null,
+      isLoggedIn: false,
+      fetchUser: mockFetchUser,
+      logout: mockLogout,
+    });
 
-//   const closeBtn = screen.getByLabelText('Close mobile menu');
-//   fireEvent.click(closeBtn);
-
-//   // Check menu is hidden
-//   expect(menu).not.toBeVisible(); // or expect(menu).toHaveAttribute('aria-expanded', 'false')
-// });
-
+    render(<Navbar />);
+    expect(screen.getByText("Login")).toBeInTheDocument();
+  });
 });

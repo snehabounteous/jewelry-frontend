@@ -3,15 +3,20 @@
 import { useEffect, useState } from "react";
 import ProductCard, { Product, ProductImage } from "@/components/ProductCard";
 import { clientApi } from "@/utils/axios";
-import { useWishlist } from "@/store/useWishlist";
-import { useCart } from "@/store/useCart";
 
+interface ReviewApi {
+  id: string;
+  user_id: string;
+  rating: number;
+  comment?: string;
+  created_at: string;
+}
 interface WishlistApiItem {
   id: string;
   name: string;
   price: string; // API gives string
   images: { id: string; url: string; alt_text?: string }[];
-  reviews: any[]; // Array of review objects
+  reviews: ReviewApi[]; // Array of review objects
 }
 
 interface WishlistResponse {
@@ -22,9 +27,6 @@ interface WishlistResponse {
 export default function WishlistPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-
-  const { fetchWishlist } = useWishlist();
-  const { addToCart } = useCart();
 
   const fetchWishlistData = async () => {
     setLoading(true);

@@ -7,7 +7,7 @@ import { clientApi } from "@/utils/axios";
 import { Heart } from "lucide-react";
 import { useUserStore } from "@/store/useUserStore";
 import { useWishlist } from "@/store/useWishlist";
-import { set } from "react-hook-form";
+import { AxiosError } from "axios";
 
 interface ProductImage {
   id: string;
@@ -43,44 +43,48 @@ interface Props {
   product: Product;
 }
 
-
 export default function ProductDetail({ product }: Props) {
-
   const [quantity, setQuantity] = useState(1);
 
   // ✅ Fetch wishlist on load
-const { items, add, remove, isInWishlist, fetchWishlist } = useWishlist();
+  const { isInWishlist, fetchWishlist } = useWishlist();
   const { isLoggedIn } = useUserStore();
   const [isWishlisted, setIsWishlisted] = useState(false);
   useEffect(() => {
-    if (isLoggedIn) {
-      fetchWishlist();
-      setIsWishlisted(isInWishlist(product.id));
-    }
-  }, [isLoggedIn, fetchWishlist]);
-
+  if (isLoggedIn) {
+    fetchWishlist();
+    setIsWishlisted(isInWishlist(product.id));
+  }
+}, [isLoggedIn, fetchWishlist, isInWishlist, product.id]);
 
   // Fetch wishlist from backend
   async function handleWishlistToggle() {
-  try {
-    if (isWishlisted) {
-      await clientApi.post(`/wishlist/remove/${product.id}`);
-      setIsWishlisted(false);
-      toast.success("Removed from wishlist");
-    } else {
-      await clientApi.post("/wishlist/add", { product_id: product.id });
-      setIsWishlisted(true); // <-- force red immediately
-      toast.success("Added to wishlist");
-    }
-  } catch (error: any) {
-    if (error.response?.data?.error === "Product already in wishlist") {
-      setIsWishlisted(true); // <-- highlight red even if API rejects
-    } else {
-      toast.error("Wishlist action failed");
+    try {
+      if (isWishlisted) {
+        await clientApi.post(`/wishlist/remove/${product.id}`);
+        setIsWishlisted(false);
+        toast.success("Removed from wishlist");
+      } else {
+        await clientApi.post("/wishlist/add", { product_id: product.id });
+        setIsWishlisted(true); // <-- force red immediately
+        toast.success("Added to wishlist");
+      }
+    } catch (error: unknown) {
+      let isAlreadyInWishlist = false;
+
+      if (error instanceof AxiosError) {
+        if (error.response?.data?.error === "Product already in wishlist") {
+          isAlreadyInWishlist = true;
+        }
+      }
+
+      if (isAlreadyInWishlist) {
+        setIsWishlisted(true); // highlight red even if API rejects
+      } else {
+        toast.error("Wishlist action failed");
+      }
     }
   }
-}
-
 
   function handleMinus() {
     setQuantity((prev) => Math.max(prev - 1, 1));
@@ -97,13 +101,12 @@ const { items, add, remove, isInWishlist, fetchWishlist } = useWishlist();
         quantity,
       });
       toast.success("Product added to cart");
-    } catch (error) {
+    } catch {
       toast.error("Failed to add product to cart");
     }
   }
 
   // ✅ Wishlist toggle
-  
 
   return (
     <div className="flex justify-between w-full max-w-7xl mx-auto p-4 space-x-8 relative">
@@ -125,10 +128,7 @@ const { items, add, remove, isInWishlist, fetchWishlist } = useWishlist();
 
         {/* Quantity Selector */}
         <div className="flex items-center space-x-3 mt-4">
-          <button
-            onClick={handleMinus}
-            className="px-3 py-1 border rounded hover:bg-gray-100"
-          >
+          <button onClick={handleMinus} className="px-3 py-1 border rounded hover:bg-gray-100">
             -
           </button>
           <input
@@ -138,10 +138,7 @@ const { items, add, remove, isInWishlist, fetchWishlist } = useWishlist();
             readOnly
             className="w-16 text-center border rounded"
           />
-          <button
-            onClick={handlePlus}
-            className="px-3 py-1 border rounded hover:bg-gray-100"
-          >
+          <button onClick={handlePlus} className="px-3 py-1 border rounded hover:bg-gray-100">
             +
           </button>
         </div>

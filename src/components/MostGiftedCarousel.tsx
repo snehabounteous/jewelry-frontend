@@ -5,7 +5,27 @@ import ProductCard, { Product } from "./ProductCard";
 import { serverApi } from "@/utils/axios";
 
 const CATEGORY_API = "/products/category/f0e9f46f-02c7-4de5-84ca-ae40dd6aeae2";
+interface ReviewApi {
+  id: string;
+  user_id: string;
+  rating: number;
+  comment?: string;
+  created_at: string;
+}
 
+interface ProductImageApi {
+  id: string;
+  url: string;
+  alt_text?: string;
+}
+
+// interface ProductApi {
+//   id: string;
+//   name: string;
+//   price: string | number; // API might return string
+//   reviews: ReviewApi[];
+//   images: ProductImageApi[];
+// }
 const MostGiftedCarousel: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [offset, setOffset] = useState(0);
@@ -22,7 +42,7 @@ const MostGiftedCarousel: React.FC = () => {
         const productsArray = Array.isArray(data) ? data : [data];
 
         // Transform for ProductCard
-        const transformed: Product[] = productsArray.map((p: any) => ({
+        const transformed: Product[] = productsArray.map((p) => ({
           id: p.id,
           name: p.name,
           price: Number(p.price),
@@ -30,25 +50,24 @@ const MostGiftedCarousel: React.FC = () => {
           discount: 10,
           rating:
             p.reviews.length > 0
-              ? p.reviews.reduce((acc: number, r: { rating: number }) => acc + r.rating, 0) /
-                p.reviews.length
+              ? p.reviews.reduce((acc: number, r: ReviewApi) => acc + r.rating, 0) / p.reviews.length
               : 0,
           reviews: p.reviews.length,
-          images: p.images.length
-            ? p.images.map((img: { url: string; alt_text?: string }, idx: number) => ({
-                id: `${p.id}-${idx}`,
-                url: img.url,
-                alt_text: img.alt_text || p.name,
-              }))
-            : [
-                {
-                  id: `${p.id}-0`,
-                  url: "/placeholder.png",
-                  alt_text: p.name,
-                },
-              ],
+          images:
+            p.images.length > 0
+              ? p.images.map((img: ProductImageApi, idx: number) => ({
+                  id: `${p.id}-${idx}`,
+                  url: img.url,
+                  alt_text: img.alt_text || p.name,
+                }))
+              : [
+                  {
+                    id: `${p.id}-0`,
+                    url: "/placeholder.png",
+                    alt_text: p.name,
+                  },
+                ],
         }));
-
         setProducts(transformed);
       } catch (error) {
         console.error("Error fetching products:", error);

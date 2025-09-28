@@ -15,9 +15,7 @@ import { useRouter } from "next/navigation";
 import { clientApi } from "@/utils/axios";
 import { useUserStore } from "@/store/useUserStore";
 
-interface ApiError {
-  message: string;
-}
+
 
 const loginSchema = yup.object().shape({
   email: yup.string().email("Invalid email").required("Email is required"),
@@ -38,7 +36,6 @@ interface FormData {
 
 const AuthPage: React.FC = () => {
   const router = useRouter();
-  const { setUser } = useUserStore();
   const [isRegister, setIsRegister] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [showPassword, setShowPassword] = useState<boolean>(false);
@@ -74,9 +71,17 @@ const AuthPage: React.FC = () => {
     }
 
     reset();
-  } catch (error: any) {
-    toast.error(error?.response?.data?.error || "An error occurred");
-  } finally {
+  } catch (err: unknown) {
+    // Narrow the error type safely
+    if (typeof err === "object" && err !== null) {
+      const e = err as { response?: { data?: { error?: string } } };
+      toast.error(e.response?.data?.error || "An error occurred");
+    } else if (err instanceof Error) {
+      toast.error(err.message);
+    } else {
+      toast.error("An unknown error occurred");
+    }
+  }  finally {
     setIsLoading(false);
   }
 };

@@ -8,13 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from "@/components/ui/select";
+import { AxiosError } from "axios";
+
 import { Separator } from "@/components/ui/separator";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Lock, Truck, PlusCircle, Badge } from "lucide-react";
@@ -22,7 +17,6 @@ import { useRouter } from "next/navigation";
 import { useForm, Controller } from "react-hook-form";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
-import StripeCheckout from "@/components/StripeCheckout";
 import { createRoot } from "react-dom/client";
 import { PaymentIntent } from "@stripe/stripe-js";
 
@@ -58,6 +52,34 @@ type ShippingOption = {
   name: string;
   cost: number;
 };
+interface PaymentInfo {
+  id: string;
+  method: string;
+  amount: number;
+  status: string;
+  currency: string;
+}
+
+interface OrderPayload {
+  shippingMethod: string;
+  shippingCost: number;
+  contact?: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone: string;
+  };
+  shipping?: {
+    address: string;
+    city: string;
+    state: string;
+    zip: string;
+    country: string;
+  };
+  setDefault?: boolean;
+  addressId?: string;
+  payment: PaymentInfo;
+}
 
 const CheckoutPage = () => {
   const stripeRef = useRef<HTMLDivElement>(null);
@@ -70,11 +92,11 @@ const CheckoutPage = () => {
   const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
   const [showNewAddressForm, setShowNewAddressForm] = useState(false);
   const [setAsDefault, setSetAsDefault] = useState(false);
-  const [loadingAddresses, setLoadingAddresses] = useState(true);
+  const [, setLoadingAddresses] = useState(true);
 
   // Shipping
   const [shippingMethod, setShippingMethod] = useState<string>("standard");
-  const [shippingOptions, setShippingOptions] = useState<ShippingOption[]>([
+  const [shippingOptions, ] = useState<ShippingOption[]>([
     { id: "standard", name: "Standard Shipping", cost: 0 },
     { id: "express", name: "Express Shipping", cost: 99 },
     { id: "overnight", name: "Overnight Shipping", cost: 199 },
@@ -101,14 +123,9 @@ const CheckoutPage = () => {
     resolver: yupResolver(addressSchema),
   });
 
-  // Load cart & addresses
+  
   useEffect(() => {
-    fetchCart();
-    fetchAddresses();
-  }, []);
-
-  // Fetch addresses
-  const fetchAddresses = async () => {
+    const fetchAddresses = async () => {
     try {
       setLoadingAddresses(true);
       const res = await clientApi.get("/address"); // make sure endpoint matches backend
@@ -144,6 +161,9 @@ const CheckoutPage = () => {
       setLoadingAddresses(false);
     }
   };
+    fetchCart();
+    fetchAddresses();
+  }, [fetchCart, reset]);
 
   if (!cart.length) return <p className="p-8 text-center">Your cart is empty</p>;
 
@@ -172,7 +192,17 @@ const CheckoutPage = () => {
               ? paymentIntent.payment_method
               : (paymentIntent.payment_method?.id ?? "unknown");
 
-          const payload: any = { shippingMethod, shippingCost };
+          const payload: OrderPayload = {
+            shippingMethod,
+            shippingCost,
+            payment: {
+              id: paymentIntent.id,
+              method: paymentMethodId,
+              amount: paymentIntent.amount,
+              status: paymentIntent.status,
+              currency: paymentIntent.currency,
+            },
+          };
 
           if (showNewAddressForm) {
             payload.contact = {
@@ -207,8 +237,14 @@ const CheckoutPage = () => {
           await clearCart();
           const { order_id, total_amount } = res.data;
           router.push(`/order-success?orderId=${order_id}&total=${total_amount}`);
-        } catch (err: any) {
-          toast.error(err?.response?.data?.message || "Failed to place order");
+        } catch (err: unknown) {
+          let message = "Failed to place order";
+
+          if (err instanceof AxiosError) {
+            message = err.response?.data?.message ?? message;
+          }
+
+          toast.error(message);
         } finally {
           root.unmount(); // remove StripeCheckout after payment
         }

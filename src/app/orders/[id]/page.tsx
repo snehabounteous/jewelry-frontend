@@ -1,11 +1,11 @@
 "use client";
 
 import { use, useEffect, useState } from "react";
-import OrderItemRow, { OrderItem } from "@/components/orders/OrderItemRow";
+import { OrderItem } from "@/components/orders/OrderItemRow";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import { clientApi } from "@/utils/axios";
 import { toast } from "sonner";
+import { AxiosError } from "axios";
 
 type OrderDetails = {
   id: string;
@@ -48,14 +48,18 @@ export default function OrderDetailsPage({ params }: Props) {
       try {
         const res = await clientApi.get(`/order/${orderId}`);
         setOrder(res.data);
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error("Failed to fetch order:", err);
-        setError(
-          err.response?.status === 401
-            ? "Please login to view this order."
-            : "Failed to fetch order details."
-        );
-        toast.error(error || "Error fetching order");
+
+        let message = "Failed to fetch order details.";
+
+        // Narrow the error to AxiosError
+        if (err instanceof AxiosError) {
+          message = err.response?.status === 401 ? "Please login to view this order." : message;
+        }
+
+        setError(message);
+        toast.error(message);
       } finally {
         setLoading(false);
       }

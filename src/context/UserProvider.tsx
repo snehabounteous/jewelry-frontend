@@ -3,6 +3,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { clientApi } from "@/utils/axios";
+import { ExternalToast, toast } from "sonner";
 
 export interface User {
   id: string;
@@ -35,6 +36,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     } catch (err) {
       setUser(null);
       setIsLoggedIn(false);
+      toast.error("Failed to fetch user", err as ExternalToast);
     } finally {
       setLoading(false);
     }

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import OrderCard, { OrderSummary } from "@/components/orders/OrderCard";
 import { clientApi } from "@/utils/axios";
 import { toast } from "sonner";
+import { AxiosError } from "axios";
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState<OrderSummary[]>([]);
@@ -16,14 +17,18 @@ export default function OrdersPage() {
     try {
       const res = await clientApi.get("/order");
       setOrders(res.data);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Failed to fetch orders:", err);
-      setError(
-        err.response?.status === 401
-          ? "Please login to view your orders."
-          : "Failed to fetch orders. Try again later."
-      );
-      toast.error(error || "Error fetching orders");
+
+      let message = "Failed to fetch orders. Try again later.";
+
+      // Narrow the error to AxiosError
+      if (err instanceof AxiosError) {
+        message = err.response?.status === 401 ? "Please login to view your orders." : message;
+      }
+
+      setError(message);
+      toast.error(message);
     } finally {
       setLoading(false);
     }
@@ -34,25 +39,15 @@ export default function OrdersPage() {
   }, []);
 
   if (loading) {
-    return (
-      <p className="p-8 text-center text-gray-500">Loading your orders...</p>
-    );
+    return <p className="p-8 text-center text-gray-500">Loading your orders...</p>;
   }
 
   if (error) {
-    return (
-      <p className="p-8 text-center text-red-600">
-        {error}
-      </p>
-    );
+    return <p className="p-8 text-center text-red-600">{error}</p>;
   }
 
   if (!orders.length) {
-    return (
-      <p className="p-8 text-center text-gray-500">
-        You haven’t placed any orders yet.
-      </p>
-    );
+    return <p className="p-8 text-center text-gray-500">You haven’t placed any orders yet.</p>;
   }
 
   return (

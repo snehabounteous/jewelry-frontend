@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { Star, Instagram, Facebook, Twitter } from "lucide-react";
+import Link from "next/link";
 
 export default function Footer() {
   return (
@@ -37,24 +38,24 @@ export default function Footer() {
           <h4 className="text-white font-semibold mb-4 font-[var(--font-heading)]">Quick Links</h4>
           <ul className="space-y-2 text-sm">
             <li>
-              <a href="/products" className="text-white hover:text-[var(--color-accent)]">
+              <Link href="/products" className="text-white hover:text-[var(--color-accent)]">
                 Shop
-              </a>
+              </Link>
             </li>
             <li>
-              <a href="/about" className="text-white hover:text-[var(--color-accent)]">
+              <Link href="/about" className="text-white hover:text-[var(--color-accent)]">
                 About Us
-              </a>
+              </Link>
             </li>
             <li>
-              <a href="/contact" className="text-white hover:text-[var(--color-accent)]">
+              <Link href="/contact" className="text-white hover:text-[var(--color-accent)]">
                 Contact
-              </a>
+              </Link>
             </li>
             <li>
-              <a href="/policies" className="text-white hover:text-[var(--color-accent)]">
+              <Link href="/policies" className="text-white hover:text-[var(--color-accent)]">
                 Policies
-              </a>
+              </Link>
             </li>
           </ul>
         </div>

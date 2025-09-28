@@ -3,11 +3,12 @@ import HeroCarousel from "../components/HeroCarousel";
 
 import CustomerStories from "../components/CustomerStories";
 import { serverApi } from "../utils/axios";
-import image1 from "../../public/images/jewel1.webp"
-import image2 from "../../public/images/jewel2.webp"
-import image3 from "../../public/images/jewel3.webp"
+import image1 from "../../public/images/jewel1.webp";
+import image2 from "../../public/images/jewel2.webp";
+import image3 from "../../public/images/jewel3.webp";
 import CategoriesCarousel from "@/components/CategoriesCarousel";
 import MostGiftedCarousel from "@/components/MostGiftedCarousel";
+import { Link } from "lucide-react";
 
 interface HeroSlide {
   id: number;
@@ -59,31 +60,24 @@ async function getCategories(): Promise<Category[]> {
   }
 }
 
-
-
 const HomePage = async () => {
-  const [categories] = await Promise.all([
-    getCategories(),
-  ]);
+  const [categories] = await Promise.all([getCategories()]);
 
   return (
     <div className="font-[Playfair_Display]">
       <HeroCarousel slides={heroSlides} />
 
       <section className="py-24 px-[5%] mx-auto">
-        <a
+        <Link
           href="/products"
           className="block text-center mb-16 cursor-pointer hover:opacity-80 transition-opacity"
         >
-          <h2 className="text-4xl md:text-6xl font-light text-gray-900 mb-4">
-            Our Collections
-          </h2>
+          <h2 className="text-4xl md:text-6xl font-light text-gray-900 mb-4">Our Collections</h2>
           <p className="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-            Explore our carefully curated selection of fine jewelry, each piece
-            designed to complement your unique style and celebrate life's
-            precious moments.
+            Explore our carefully curated selection of fine jewelry, each piece designed to
+            complement your unique style and celebrate life&apos;s precious moments.
           </p>
-        </a>
+        </Link>
 
         {categories.length > 0 ? (
           <CategoriesCarousel categories={categories} />
@@ -95,16 +89,16 @@ const HomePage = async () => {
       </section>
 
       <section className="py-24 px-[5%] mx-auto">
-        <a
+        <Link
           href="/products"
           className="block text-center mb-16 cursor-pointer hover:opacity-80 transition-opacity"
         >
           <h2 className="text-4xl md:text-6xl font-light text-gray-900 mb-4">
             Checkout Our Earring Collections
           </h2>
-        </a>
+        </Link>
 
-        <MostGiftedCarousel  />
+        <MostGiftedCarousel />
       </section>
 
       <CustomerStories />

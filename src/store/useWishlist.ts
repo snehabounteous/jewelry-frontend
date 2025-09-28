@@ -2,11 +2,10 @@
 import { create } from "zustand";
 import { clientApi } from "@/utils/axios";
 import { useUserStore } from "./useUserStore";
-import { toast } from "sonner";
 
 export interface WishlistState {
   items: string[]; // IDs for quick lookup
-  products: any[]; // full product objects from API
+  products: WishlistProduct[]; // full product objects from API
   add: (id: string) => void;
   remove: (id: string) => void;
   isInWishlist: (id: string) => boolean;
@@ -25,7 +24,14 @@ interface WishlistProduct {
     url: string;
     alt_text?: string;
   }[];
-  reviews?: any[];
+  reviews?: Review[];
+}
+export interface Review {
+  id: string;
+  user_id: string;
+  rating: number;
+  comment?: string;
+  created_at: string;
 }
 
 export const useWishlist = create<WishlistState>((set, get) => ({

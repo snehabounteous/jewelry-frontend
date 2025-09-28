@@ -95,7 +95,8 @@ export default function About() {
             {/* Simple Quote */}
             <div className="text-center py-16 border-t border-[#E5E5E5]">
               <blockquote className="text-xl md:text-2xl font-light text-[#1C1C1C] italic mb-6">
-                "True luxury lies in the perfection of every detail."
+               <p>&quot;True luxury lies in the perfection of every detail.&quot;</p>
+
               </blockquote>
               <div className="w-12 h-px bg-[#D4AF37] mx-auto"></div>
             </div>

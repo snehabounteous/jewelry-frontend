@@ -1,14 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Star, ShoppingBag } from "lucide-react";
 import { clientApi } from "@/utils/axios";
-import Image from "next/image";
-import Link from "next/link";
-import { toast } from "sonner";
 import ProductCard from "@/components/ProductCard";
 
 interface ProductImage {
@@ -16,6 +9,13 @@ interface ProductImage {
   url: string;
   alt_text?: string;
 }
+// interface Review {
+//   id: string;
+//   user_id: string;
+//   rating: number;
+//   comment?: string;
+//   created_at: string;
+// }
 
 interface Product {
   id: string;
@@ -29,51 +29,73 @@ interface Product {
   images: ProductImage[];
 }
 
+interface ProductImageApi {
+  id: string;
+  url: string;
+  alt_text?: string;
+}
+
+interface ReviewApi {
+  id: string;
+  user_id: string;
+  rating: number;
+  comment?: string;
+  created_at: string;
+}
+
+interface ProductApi {
+  id: string;
+  name: string;
+  description?: string;
+  price: string | number; // API may return string
+  originalPrice?: string | number;
+  discount?: string | number;
+  reviews?: ReviewApi[];
+  images: ProductImageApi[];
+}
+
 export default function CategoryClientPage({ categoryId }: { categoryId: string }) {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const res = await clientApi.get(`/products/category/${categoryId}`);
-        const mappedProducts = (res.data ?? []).map((p: any) => ({
-          ...p,
-          price: Number(p.price), // convert price string to number if needed
-          rating: p.reviews?.length
-            ? p.reviews.reduce((sum: number, r: any) => sum + r.rating, 0) / p.reviews.length
-            : 0,
-          reviews: p.reviews?.length ?? 0, // number of reviews
-        }));
-        setProducts(mappedProducts);
-      } catch (err) {
-        console.error("Error fetching products by category:", err);
-        setProducts([]);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchProducts = async () => {
+    setLoading(true);
 
-    fetchProducts();
-  }, [categoryId]);
-
-  const handleAddToCart = async (productId: string) => {
     try {
-      await clientApi.post("/cart/add", { product_id: productId, quantity: 1 });
-      toast.success("Added to cart!");
-    } catch (err: any) {
-      const msg = err.response?.data?.error || "Failed to add to cart";
-      toast.error(msg);
+      const res = await clientApi.get<ProductApi[]>(`/products/category/${categoryId}`);
+
+      const mappedProducts: Product[] = res.data.map((p) => ({
+        id: p.id,
+        name: p.name,
+        description: p.description,
+        price: Number(p.price),
+        originalPrice: p.originalPrice ? Number(p.originalPrice) : undefined,
+        discount: p.discount ? Number(p.discount) : undefined,
+        rating: p.reviews?.length
+          ? p.reviews.reduce((sum, r) => sum + r.rating, 0) / p.reviews.length
+          : undefined,
+        reviews: p.reviews?.length ?? undefined,
+        images: p.images.map((img) => ({
+          id: img.id,
+          url: img.url,
+          alt_text: img.alt_text,
+        })),
+      }));
+
+      setProducts(mappedProducts);
+    } catch (err: unknown) {
+      console.error("Error fetching products by category:", err);
+      setProducts([]);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const renderStars = (rating = 0) =>
-    [...Array(5)].map((_, i) => (
-      <Star
-        key={i}
-        className={`h-4 w-4 ${i < Math.floor(rating) ? "text-accent" : "text-secondary"}`}
-      />
-    ));
+  fetchProducts();
+}, [categoryId]);
+
+  
 
   if (loading) {
     return <div className="text-center py-20 text-secondary">Loading...</div>;

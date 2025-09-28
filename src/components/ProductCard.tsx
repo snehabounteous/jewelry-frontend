@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { useWishlist } from "@/store/useWishlist";
 import { useUserStore } from "@/store/useUserStore";
 import { useRouter } from "next/navigation";
+import { AxiosError } from "axios";
 
 export interface ProductImage {
   id: string;
@@ -54,8 +55,14 @@ export default function ProductCard({ product }: ProductCardProps) {
     try {
       await clientApi.post("/cart/add", { product_id: product.id, quantity: 1 });
       toast.success("Added to cart!");
-    } catch (err: any) {
-      toast.error(err.response?.data?.error || "Failed to add to cart");
+    } catch (err: unknown) {
+      let message = "Failed to add to cart";
+
+      if (err instanceof AxiosError) {
+        message = err.response?.data?.error || message;
+      }
+
+      toast.error(message);
     }
   };
 
@@ -70,19 +77,26 @@ export default function ProductCard({ product }: ProductCardProps) {
         add(String(product.id));
         toast.success("Added to wishlist");
       }
-    } catch (err: any) {
-      toast.error(err.response?.data?.error || "Wishlist action failed");
+    } catch (err: unknown) {
+      let message = "Wishlist action failed";
+
+      if (err instanceof AxiosError) {
+        message = err.response?.data?.error || message;
+      }
+
+      toast.error(message);
     }
   };
 
-  const handleCardClick = () => {
-    router.push(`/products/${product.id}`); // Navigate to PDP
-  };
-
+  // const handleCardClick = () => {
+  //   router.push(`/products/${product.id}`); // Navigate to PDP
+  // };
 
   return (
-    <Card className="relative bg-background/80 border border-secondary/30 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden cursor-pointer"
-    onClick={() => router.push(`/products/${product.id}`)}>
+    <Card
+      className="relative bg-background/80 border border-secondary/30 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden cursor-pointer"
+      onClick={() => router.push(`/products/${product.id}`)}
+    >
       <CardHeader className="p-0 relative">
         <div className="relative aspect-square overflow-hidden">
           {images.length > 0 ? (

@@ -1,4 +1,5 @@
 import '@testing-library/jest-dom';
+import NextImageMock from './__mocks__/next/image';
 
-// jest.setup.js or setupTests.ts
-jest.mock('next/image', () => require('./__mocks__/next/image.js'));
+// Mock next/image for Jest
+jest.mock('next/image', () => NextImageMock);

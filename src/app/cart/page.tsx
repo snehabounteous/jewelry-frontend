@@ -39,12 +39,12 @@ export type Cart = {
 
 
 export default function CartPage() {
-  const { cart, fetchCart, removeFromCart, reduceQuantity, clearCart } = useCart();
+  const { cart, fetchCart, removeFromCart, clearCart } = useCart();
   const router = useRouter();
 
   useEffect(() => {
     fetchCart();
-  }, []);
+  }, [fetchCart]);
 
   if (!cart.length) {
     return (

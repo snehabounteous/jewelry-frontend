@@ -1,8 +1,5 @@
 import { render, screen, fireEvent } from "@testing-library/react";
 import ProductCard, { Product } from "../ProductCard";
-import { useRouter } from "next/navigation";
-import { useWishlist } from "@/store/useWishlist";
-import { useUserStore } from "@/store/useUserStore";
 import { clientApi } from "@/utils/axios";
 import React from "react";
 

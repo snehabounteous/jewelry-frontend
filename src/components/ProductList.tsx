@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { toast } from "sonner";
 import debounce from "lodash.debounce";
 import SearchAndFilters from "./SearchAndFilters";
 import ProductCard, { Product } from "./ProductCard";
@@ -26,8 +25,8 @@ export default function ProductList({ initialProducts }: ProductListProps) {
   const { fetchWishlist } = useWishlist();
 
   useEffect(() => {
-    if (!loading && isLoggedIn) fetchWishlist();
-  }, [loading, isLoggedIn]);
+  if (!loading && isLoggedIn) fetchWishlist();
+}, [loading, isLoggedIn, fetchWishlist]);
 
   const fetchProducts = useCallback(
     async (params?: {
@@ -43,7 +42,7 @@ export default function ProductList({ initialProducts }: ProductListProps) {
         }
         const query = new URLSearchParams(
           Object.entries(params)
-            .filter(([_, v]) => v !== undefined && v !== "")
+            .filter(([, v]) => v !== undefined && v !== "")
             .map(([k, v]) => [k, String(v)])
         );
         const res = await clientApi.get(`/search?${query.toString()}`);

@@ -17,7 +17,7 @@ export default async function ProductPage({ params }: Props) {
     const product = await getProduct(params.id);
 
     return <ProductDetail product={product} />; // ✅ Now valid
-  } catch (error) {
+  } catch {
     return (
       <div className="p-8 text-center text-gray-500">
         Product not found!
