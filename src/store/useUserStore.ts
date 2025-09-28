@@ -1,4 +1,3 @@
-// store/useUserStore.ts
 "use client";
 
 import { create } from "zustand";
@@ -17,7 +16,7 @@ interface UserState {
   isLoggedIn: boolean;
   setUser: (user: User | null) => void;
   fetchUser: () => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
 }
 
 export const useUserStore = create<UserState>((set) => ({
@@ -34,6 +33,7 @@ export const useUserStore = create<UserState>((set) => ({
   fetchUser: async () => {
     set({ loading: true });
     try {
+      // Cookies automatically sent via clientApi
       const res = await clientApi.get("/auth/me");
       set({ user: res.data.user, isLoggedIn: true });
     } catch {
@@ -44,8 +44,11 @@ export const useUserStore = create<UserState>((set) => ({
   },
 
   logout: async () => {
-    set({ user: null, isLoggedIn: false });
-    
-    await clientApi.post("/auth/logout");
+    try {
+      // Backend clears cookie
+      await clientApi.post("/auth/logout");
+    } finally {
+      set({ user: null, isLoggedIn: false });
+    }
   },
 }));

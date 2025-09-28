@@ -10,21 +10,10 @@ export const serverApi = axios.create({
 export const clientApi = axios.create({
   baseURL,
   headers: { "Content-Type": "application/json" },
-  withCredentials: true, // needed to send HttpOnly refresh token
+  withCredentials: true, // sends httpOnly cookies automatically
 });
 
-// Request interceptor: attach access token
-clientApi.interceptors.request.use((config) => {
-  if (typeof window !== "undefined") {
-    const token = localStorage.getItem("accessToken");
-    if (token && config.headers) {
-      config.headers["Authorization"] = `Bearer ${token}`;
-    }
-  }
-  return config;
-});
 
-// Response interceptor: handle 401 and auto-refresh
 clientApi.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -33,22 +22,18 @@ clientApi.interceptors.response.use(
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
       try {
-        // refresh token is sent automatically via HttpOnly cookie
-        const res = await axios.post(
+        // refresh token is sent automatically via httpOnly cookie
+        await axios.post(
           `${baseURL}/auth/refresh-token`,
           {},
           { withCredentials: true }
         );
 
-        const { accessToken } = res.data;
-        localStorage.setItem("accessToken", accessToken);
-
-        originalRequest.headers["Authorization"] = `Bearer ${accessToken}`;
+        // Retry the original request
         return clientApi(originalRequest);
       } catch (err) {
         console.error("Refresh token failed:", err);
-        localStorage.removeItem("accessToken");
-        // optionally redirect to login
+        // redirect to login
         window.location.href = "/auth";
         return Promise.reject(err);
       }

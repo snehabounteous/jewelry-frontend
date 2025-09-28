@@ -12,7 +12,7 @@ import { useWishlist } from "@/store/useWishlist";
 import { useUserStore } from "@/store/useUserStore";
 import { useRouter } from "next/navigation";
 
-interface ProductImage {
+export interface ProductImage {
   id: string;
   url: string;
   alt_text?: string;
@@ -62,7 +62,7 @@ export default function ProductCard({ product }: ProductCardProps) {
   const handleWishlistToggle = async () => {
     try {
       if (isWishlisted) {
-        await clientApi.post("/wishlist/remove", { product_id: product.id });
+        await clientApi.delete(`/wishlist/remove/${product.id}`);
         remove(String(product.id));
         toast.success("Removed from wishlist");
       } else {

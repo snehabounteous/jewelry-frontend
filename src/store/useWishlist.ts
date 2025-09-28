@@ -2,36 +2,54 @@
 import { create } from "zustand";
 import { clientApi } from "@/utils/axios";
 import { useUserStore } from "./useUserStore";
+import { toast } from "sonner";
 
-interface WishlistState {
-  items: string[];
+export interface WishlistState {
+  items: string[]; // IDs for quick lookup
+  products: any[]; // full product objects from API
   add: (id: string) => void;
   remove: (id: string) => void;
   isInWishlist: (id: string) => boolean;
   fetchWishlist: () => Promise<void>;
 }
+interface WishlistProduct {
+  id: string;
+  name: string;
+  description: string;
+  price: string | number;
+  category_id?: string;
+  stock?: number;
+  images?: {
+    id: string;
+    product_id: string;
+    url: string;
+    alt_text?: string;
+  }[];
+  reviews?: any[];
+}
 
 export const useWishlist = create<WishlistState>((set, get) => ({
   items: [],
-  add: (id) => set((state) => ({ items: [...state.items, id] })),
-  remove: (id) => set((state) => ({ items: state.items.filter((pid) => pid !== id) })),
-  isInWishlist: (id) => get().items.includes(id),
+  products: [],
+  add: (id: string) => set((state) => ({ items: [...state.items, id] })),
+  remove: (id: string) =>
+    set((state) => ({
+      items: state.items.filter((pid) => pid !== id),
+      products: state.products.filter((p) => String(p.id) !== id),
+    })),
+  isInWishlist: (id: string) => get().items.includes(id),
   fetchWishlist: async () => {
-  const { isLoggedIn } = useUserStore.getState();
-  if (!isLoggedIn) return;
+    const { isLoggedIn } = useUserStore.getState();
+    if (!isLoggedIn) return;
 
-  try {
-    const res = await clientApi.get("/wishlist");
-    // Map actual product IDs
-    const ids = Array.isArray(res.data.items)
-      ? res.data.items.map((item: any) => String(item.product.id))
-      : [];
-    set({ items: ids });
-  } catch (err) {
-    console.error("Failed to fetch wishlist", err);
-    set({ items: [] });
-  }
-}
-
-
+    try {
+      const res = await clientApi.get("/wishlist");
+      const products: WishlistProduct[] = Array.isArray(res.data.items) ? res.data.items : [];
+      const ids = products.map((item: WishlistProduct) => String(item.id));
+      set({ items: ids, products });
+    } catch (err) {
+      console.error("Failed to fetch wishlist", err);
+      set({ items: [], products: [] });
+    }
+  },
 }));

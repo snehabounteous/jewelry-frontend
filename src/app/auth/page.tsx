@@ -60,18 +60,13 @@ const AuthPage: React.FC = () => {
       ? { name: values.name!, email: values.email, password: values.password }
       : { email: values.email, password: values.password };
 
-    const response = await clientApi.post(endpoint, payload);
+    await clientApi.post(endpoint, payload);
 
     if (!isRegister) {
-      // Only store access token
-      localStorage.setItem("accessToken", response.data.accessToken);
-
-      // fetch current user
-      const userResponse = await clientApi.get("/auth/me");
-      const user = userResponse.data.user;
-      setUser(user);
-
-      toast.success(`Welcome back, ${user.name}!`);
+      // Fetch user using cookie-based auth
+      await useUserStore.getState().fetchUser();
+      const user = useUserStore.getState().user;
+      toast.success(`Welcome back, ${user?.name}!`);
       router.push("/");
     } else {
       toast.success("Registration successful! You can now log in.");
