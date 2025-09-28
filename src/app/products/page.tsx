@@ -51,21 +51,25 @@ async function getProducts(): Promise<Product[]> {
     return [];
   }
 }
+interface Props {
+  searchParams: { search?: string | undefined };
+}
 
-export default async function PLPPage() {
+export default async function PLPPage({ searchParams }: Props) {
   const products = await getProducts();
+  const searchTerm = searchParams.search ?? "";
+  const filtered = searchTerm
+    ? products.filter((p) => p.name.toLowerCase().includes(searchTerm.toLowerCase()))
+    : products;
 
-  // 🔄 Transform to match ProductList props
-  const transformed = products.map((p) => ({
+  const transformed = filtered.map((p) => ({
     id: p.id,
     name: p.name,
     price: Number(p.price),
     originalPrice: Number(p.price) + 500,
     discount: 10,
     rating:
-      p.reviews.length > 0
-        ? p.reviews.reduce((acc, r) => acc + r.rating, 0) / p.reviews.length
-        : 0,
+      p.reviews.length > 0 ? p.reviews.reduce((acc, r) => acc + r.rating, 0) / p.reviews.length : 0,
     reviews: p.reviews.length,
     images: p.images.length
       ? p.images.map((img, idx) => ({
@@ -87,10 +91,7 @@ export default async function PLPPage() {
       <div className="max-w-7xl mx-auto px-6 py-12">
         {/* Breadcrumb */}
         <nav className="text-sm mb-6 text-[var(--color-secondary)]">
-          Home /{" "}
-          <span className="font-medium text-[var(--color-foreground)]">
-            Products
-          </span>
+          Home / <span className="font-medium text-[var(--color-foreground)]">Products</span>
         </nav>
 
         {/* Header */}
@@ -105,8 +106,7 @@ export default async function PLPPage() {
             className="text-lg text-[var(--color-secondary)] max-w-2xl mx-auto"
             style={{ fontFamily: "var(--font-body)" }}
           >
-            Discover our luxurious, handcrafted jewelry — timeless elegance for
-            every occasion.
+            Discover our luxurious, handcrafted jewelry — timeless elegance for every occasion.
           </p>
           <div className="w-24 h-1 mx-auto bg-[var(--color-accent)] rounded-full" />
         </header>

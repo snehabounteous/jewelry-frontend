@@ -79,6 +79,7 @@ export default function ProductCard({ product }: ProductCardProps) {
     router.push(`/products/${product.id}`); // Navigate to PDP
   };
 
+
   return (
     <Card className="relative bg-background/80 border border-secondary/30 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden cursor-pointer"
     onClick={() => router.push(`/products/${product.id}`)}>
@@ -90,7 +91,7 @@ export default function ProductCard({ product }: ProductCardProps) {
               width={500}
               src={images[0].url.trimEnd()}
               alt={images[0].alt_text || product.name}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+              className="w-full h-full object-center group-hover:scale-105 transition-transform duration-500"
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-500">

@@ -7,14 +7,13 @@ import { useState, useEffect } from "react";
 import Profile from "./Profile";
 import { useCart } from "@/store/useCart";
 import { useUserStore } from "@/store/useUserStore";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { useRouter } from "next/navigation";
 
 export default function Navbar() {
   const { isLoggedIn, user, logout } = useUserStore();
+  const [searchTerm, setSearchTerm] = useState("");
+  const router = useRouter();
 
   const [mobileMenuOpened, setMobileMenuOpened] = useState(false);
 
@@ -22,7 +21,6 @@ export default function Navbar() {
   const navLinks = [
     { name: "Collections", href: "/products" },
     { name: "About", href: "/about" },
-    { name: "Services", href: "/services" },
     { name: "Contact", href: "/contact" },
   ];
 
@@ -38,6 +36,13 @@ export default function Navbar() {
 
   // 👉 total count (sum of quantities)
   const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+
+  const handleSearchSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (searchTerm.trim() === "") return;
+    // redirect to PLP with query param
+    router.push(`/products?search=${encodeURIComponent(searchTerm.trim())}`);
+  };
 
   return (
     <>
@@ -65,9 +70,16 @@ export default function Navbar() {
 
           {/* Icons & Profile */}
           <div className="flex items-center gap-3">
-            <button aria-label="Search" className="p-2 rounded-full hover:bg-gray-100">
-              <Search size={20} color="var(--color-primary)" />
-            </button>
+            <form onSubmit={handleSearchSubmit} className="relative max-w-md">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary" />
+              <input
+                type="text"
+                placeholder="Search our collection..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-12 h-12 bg-background border border-secondary/30 rounded-lg focus:ring-accent focus:border-accent"
+              />
+            </form>
 
             {/* Wishlist link */}
             <Link href="/wishlist" aria-label="Wishlist">
@@ -94,12 +106,8 @@ export default function Navbar() {
                 </div>
               </PopoverTrigger>
 
-              <PopoverContent
-                className="w-96 p-5 rounded-[var(--radius-lg)] bg-[var(--color-background)] shadow-xl border border-[var(--color-highlight)]"
-              >
-                <h4 className="font-heading text-lg text-[var(--color-primary)] mb-4">
-                  Your Cart
-                </h4>
+              <PopoverContent className="w-96 p-5 rounded-[var(--radius-lg)] bg-[var(--color-background)] shadow-xl border border-[var(--color-highlight)]">
+                <h4 className="font-heading text-lg text-[var(--color-primary)] mb-4">Your Cart</h4>
 
                 {cart.length === 0 ? (
                   <p className="text-[var(--color-secondary)] font-body text-sm">

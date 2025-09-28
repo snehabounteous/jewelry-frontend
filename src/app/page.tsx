@@ -25,17 +25,6 @@ interface Category {
   slug: string;
 }
 
-export interface Product {
-  id: string | number;
-  name: string;
-  price: number;
-  originalPrice?: number;
-  discount?: number;
-  rating?: number;
-  reviews?: number;
-  images: { id: string; url: string; alt_text?: string }[];
-}
-
 const heroSlides: HeroSlide[] = [
   {
     id: 1,

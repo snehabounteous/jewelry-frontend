@@ -2,10 +2,9 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import ProductCard, { Product } from "./ProductCard";
-import { serverApi } from "@/utils/axios"; // adjust path if needed
+import { serverApi } from "@/utils/axios";
 
-const CATEGORY_API =
-  "/products/category/f0e9f46f-02c7-4de5-84ca-ae40dd6aeae2";
+const CATEGORY_API = "/products/category/f0e9f46f-02c7-4de5-84ca-ae40dd6aeae2";
 
 const MostGiftedCarousel: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -13,9 +12,7 @@ const MostGiftedCarousel: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
 
   const itemWidth = 304;
-  const extendedProducts = [...products, ...products]; // for infinite loop feel
 
-  // ✅ Fetch products from backend
   useEffect(() => {
     const fetchProducts = async () => {
       try {
@@ -23,7 +20,36 @@ const MostGiftedCarousel: React.FC = () => {
 
         // Normalize response (API returns single product instead of array)
         const productsArray = Array.isArray(data) ? data : [data];
-        setProducts(productsArray);
+
+        // Transform for ProductCard
+        const transformed: Product[] = productsArray.map((p: any) => ({
+          id: p.id,
+          name: p.name,
+          price: Number(p.price),
+          originalPrice: Number(p.price) + 500,
+          discount: 10,
+          rating:
+            p.reviews.length > 0
+              ? p.reviews.reduce((acc: number, r: { rating: number }) => acc + r.rating, 0) /
+                p.reviews.length
+              : 0,
+          reviews: p.reviews.length,
+          images: p.images.length
+            ? p.images.map((img: { url: string; alt_text?: string }, idx: number) => ({
+                id: `${p.id}-${idx}`,
+                url: img.url,
+                alt_text: img.alt_text || p.name,
+              }))
+            : [
+                {
+                  id: `${p.id}-0`,
+                  url: "/placeholder.png",
+                  alt_text: p.name,
+                },
+              ],
+        }));
+
+        setProducts(transformed);
       } catch (error) {
         console.error("Error fetching products:", error);
       }
@@ -32,7 +58,6 @@ const MostGiftedCarousel: React.FC = () => {
     fetchProducts();
   }, []);
 
-  // ✅ Auto-scroll carousel
   useEffect(() => {
     if (products.length === 0) return;
 
@@ -46,6 +71,8 @@ const MostGiftedCarousel: React.FC = () => {
   if (products.length === 0) {
     return <p className="text-center py-8">Loading products...</p>;
   }
+
+  const extendedProducts = [...products, ...products]; // infinite scroll feel
 
   return (
     <div className="overflow-hidden relative">
