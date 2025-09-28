@@ -33,8 +33,7 @@ export const useUserStore = create<UserState>((set) => ({
   fetchUser: async () => {
     set({ loading: true });
     try {
-      // Cookies automatically sent via clientApi
-      const res = await clientApi.get("/auth/me");
+      const res = await clientApi.get("/auth/me"); // withCredentials is set in clientApi
       set({ user: res.data.user, isLoggedIn: true });
     } catch {
       set({ user: null, isLoggedIn: false });
@@ -51,4 +50,5 @@ export const useUserStore = create<UserState>((set) => ({
       set({ user: null, isLoggedIn: false });
     }
   },
+  
 }));

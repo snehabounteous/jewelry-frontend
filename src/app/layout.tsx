@@ -4,6 +4,8 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import UserLoader from "@/components/UserLoader"; // ✅ import UserLoader
+import { UserProvider } from "@/context/UserProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -35,9 +37,14 @@ const RootLayout: React.FC<RootLayoutProps> = ({ children }) => {
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}
       >
-        <Navbar />
-        <main style={{ flex: 1, paddingTop: "80px" }}>{children}</main>
-        <Footer />
+        {/* ✅ Call UserLoader once at top level */}
+        <UserProvider>
+        <UserLoader />
+
+          <Navbar />
+          <main style={{ flex: 1, paddingTop: "80px" }}>{children}</main>
+          <Footer />
+        </UserProvider>
         <Toaster />
       </body>
     </html>

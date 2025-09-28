@@ -1,126 +1,39 @@
 "use client";
 
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-  DropdownMenuPortal,
-} from "@/components/ui/dropdown-menu";
-import { User } from "lucide-react";
-import { useLogout } from "@/hooks/useLogout";
-import { useUserStore } from "@/store/useUserStore";
+import { FC, useState } from "react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Avatar } from "@/components/ui/avatar";
 
-export default function Profile() {
-  const { user } = useUserStore();
-  const logout = useLogout();
-  const isLoggedIn = !!user;
+interface ProfileProps {
+  user: { id: string; name: string } | null;
+  logout: () => Promise<void>;
+}
+
+const Profile: FC<ProfileProps> = ({ user, logout }) => {
+  const [open, setOpen] = useState(false);
+
+  if (!user) {
+    return null; // or show login button
+  }
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="outline" className="flex items-center gap-2">
-          {isLoggedIn ? `Hi, ${user.name}` : "Login"}
-          <User size={18} />
-        </Button>
-      </DropdownMenuTrigger>
-
-      <DropdownMenuPortal>
-        <DropdownMenuContent
-          align="end"
-          sideOffset={4}
-          className="w-72 z-[2000] shadow-lg rounded-md bg-white border"
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <button>
+          <Avatar>{user.name.charAt(0)}</Avatar>
+        </button>
+      </PopoverTrigger>
+      <PopoverContent className="w-48 p-4">
+        <p className="font-medium mb-2">{user.name}</p>
+        <button
+          onClick={logout}
+          className="w-full bg-red-500 text-white py-1 rounded hover:bg-red-600 transition-colors"
         >
-          {isLoggedIn ? (
-            <>
-              <DropdownMenuItem asChild>
-                <Link href="#">My Account</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href="#">Wishlist</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href="#">Check Order / Initiate Return</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href="#">Store Finder</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href="#">Finishing</Link>
-              </DropdownMenuItem>
-
-              <DropdownMenuSeparator />
-
-              {/* Language Selector */}
-              <div className="flex items-center justify-between px-2 py-1">
-                <span className="text-sm">Language</span>
-                <div className="flex items-center gap-1">
-                  <span className="text-sm">EN</span>
-                  <div className="w-5 h-5 rounded-full overflow-hidden">
-                    <div className="w-full h-1/3 bg-[#FF9933]" />
-                    <div className="w-full h-1/3 bg-white" />
-                    <div className="w-full h-1/3 bg-[#138808]" />
-                  </div>
-                </div>
-              </div>
-
-              <DropdownMenuSeparator />
-
-              <div className="p-2">
-                <Button className="w-full" onClick={logout}>
-                  Logout
-                </Button>
-              </div>
-            </>
-          ) : (
-            <>
-              <DropdownMenuItem asChild>
-                <Link href="#">My Account</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href="#">Wishlist</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href="#">Check Order / Initiate Return</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href="#">Store Finder</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href="#">Finishing</Link>
-              </DropdownMenuItem>
-
-              <DropdownMenuSeparator />
-
-              {/* Language Selector */}
-              <div className="flex items-center justify-between px-2 py-1">
-                <span className="text-sm">Language</span>
-                <div className="flex items-center gap-1">
-                  <span className="text-sm">EN</span>
-                  <div className="w-5 h-5 rounded-full overflow-hidden">
-                    <div className="w-full h-1/3 bg-[#FF9933]" />
-                    <div className="w-full h-1/3 bg-white" />
-                    <div className="w-full h-1/3 bg-[#138808]" />
-                  </div>
-                </div>
-              </div>
-
-              <DropdownMenuSeparator />
-
-              <div className="p-2">
-                <Link href="/auth">
-                  <Button className="w-full bg-black text-white hover:bg-gray-900">
-                    Login
-                  </Button>
-                </Link>
-              </div>
-            </>
-          )}
-        </DropdownMenuContent>
-      </DropdownMenuPortal>
-    </DropdownMenu>
+          Logout
+        </button>
+      </PopoverContent>
+    </Popover>
   );
-}
+};
+
+export default Profile;

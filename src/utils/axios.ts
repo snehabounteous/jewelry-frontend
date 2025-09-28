@@ -19,21 +19,21 @@ clientApi.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // Prevent retry loop for /auth/me
+    if (
+      error.response?.status === 401 &&
+      !originalRequest._retry &&
+      !originalRequest.url?.includes("/auth/me")
+    ) {
       originalRequest._retry = true;
       try {
-        // refresh token is sent automatically via httpOnly cookie
-        await axios.post(
-          `${baseURL}/auth/refresh-token`,
-          {},
-          { withCredentials: true }
-        );
+        // refresh token sent automatically via httpOnly cookie
+        await axios.post(`${clientApi.defaults.baseURL}/auth/refresh-token`, {}, { withCredentials: true });
 
-        // Retry the original request
+        // Retry original request
         return clientApi(originalRequest);
       } catch (err) {
         console.error("Refresh token failed:", err);
-        // redirect to login
         window.location.href = "/auth";
         return Promise.reject(err);
       }

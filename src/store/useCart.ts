@@ -57,22 +57,34 @@ export const useCart = create<CartState>((set, get) => ({
   addToCart: async ({ productId, quantity = 1 }) => {
   try {
     const res = await clientApi.post("/cart/add", { productId, quantity });
-    set((state) => ({
-      cart: [...state.cart, {
-        id: res.data.product.id,
-        name: res.data.product.name,
-        price: Number(res.data.product.price),
-        quantity: res.data.quantity,
-        image: res.data.product.image || "/placeholder.png",
-        category: res.data.product.category_id,
-      }]
-    }));
+    const newItem: CartItem = {
+      id: res.data.product.id,
+      name: res.data.product.name,
+      price: Number(res.data.product.price),
+      quantity: res.data.quantity,
+      image: res.data.product.image || "/placeholder.png",
+      category: res.data.product.category_id,
+    };
+
+    set((state) => {
+      const exists = state.cart.find((i) => i.id === newItem.id);
+      if (exists) {
+        return {
+          cart: state.cart.map((i) =>
+            i.id === newItem.id ? { ...i, quantity: newItem.quantity } : i
+          ),
+        };
+      }
+      return { cart: [...state.cart, newItem] };
+    });
+
     toast.success("Added to cart");
   } catch (err) {
     console.error("Error adding to cart:", err);
     toast.error("Failed to add product");
   }
 },
+
 
 
   removeFromCart: async (productId: string) => {
