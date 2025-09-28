@@ -6,6 +6,8 @@ import { serverApi } from "../utils/axios";
 import image1 from "../../public/images/jewel1.webp"
 import image2 from "../../public/images/jewel2.webp"
 import image3 from "../../public/images/jewel3.webp"
+import CategoriesCarousel from "@/components/CategoriesCarousel";
+import MostGiftedCarousel from "@/components/MostGiftedCarousel";
 
 interface HeroSlide {
   id: number;
@@ -79,13 +81,26 @@ const HomePage = async () => {
           </p>
         </a>
 
-        {/* {categories.length > 0 ? (
+        {categories.length > 0 ? (
           <CategoriesCarousel categories={categories} />
         ) : (
           <div className="text-center py-16">
             <p className="text-gray-600">No categories available.</p>
           </div>
-        )} */}
+        )}
+      </section>
+
+      <section className="py-24 px-[5%] mx-auto">
+        <a
+          href="/products"
+          className="block text-center mb-16 cursor-pointer hover:opacity-80 transition-opacity"
+        >
+          <h2 className="text-4xl md:text-6xl font-light text-gray-900 mb-4">
+            Checkout Our Earring Collections
+          </h2>
+        </a>
+
+        <MostGiftedCarousel  />
       </section>
 
       {/* ✅ Customer Stories also rendered server-side */}

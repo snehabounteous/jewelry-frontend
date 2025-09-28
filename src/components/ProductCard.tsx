@@ -10,6 +10,7 @@ import { clientApi } from "@/utils/axios";
 import { toast } from "sonner";
 import { useWishlist } from "@/store/useWishlist";
 import { useUserStore } from "@/store/useUserStore";
+import { useRouter } from "next/navigation";
 
 interface ProductImage {
   id: string;
@@ -36,6 +37,7 @@ export default function ProductCard({ product }: ProductCardProps) {
   const rating = product.rating ?? 0;
   const reviews = product.reviews ?? 0;
   const images = product.images ?? [];
+  const router = useRouter();
 
   const { items, add, remove, isInWishlist, fetchWishlist } = useWishlist();
   const { isLoggedIn } = useUserStore();
@@ -74,14 +76,15 @@ export default function ProductCard({ product }: ProductCardProps) {
   };
 
   return (
-    <Card className="relative bg-background/80 border border-secondary/30 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden cursor-pointer">
+    <Card className="relative bg-background/80 border border-secondary/30 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden cursor-pointer"
+    onClick={() => router.push(`/products/${product.id}`)}>
       <CardHeader className="p-0 relative">
         <div className="relative aspect-square overflow-hidden">
           {images.length > 0 ? (
             <Image
               height={500}
               width={500}
-              src={images[0].url}
+              src={images[0].url.trimEnd()}
               alt={images[0].alt_text || product.name}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
             />

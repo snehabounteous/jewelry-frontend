@@ -6,32 +6,26 @@ const reviews = [
   {
     name: "Ariana",
     text: "The diamond necklace I purchased exceeded all expectations. The craftsmanship is exquisite and it's become my most treasured piece. LUMIÈRE truly understands elegance.",
-    icon: "💎",
   },
   {
     name: "Sophia",
     text: "Never thought buying jewelry online would be this seamless. The personalized service and attention to detail made my mother's birthday truly special.",
-    icon: "🎁",
   },
   {
     name: "Meera",
     text: "The gold earrings I gifted to my sister on her wedding were absolutely stunning. She couldn't stop admiring them! I'm completely obsessed with LUMIÈRE's collection.",
-    icon: "👂",
   },
   {
     name: "Riya",
     text: "LUMIÈRE has completely transformed my jewelry collection. Each piece tells a story and the quality is unmatched. I feel like royalty every time I wear them.",
-    icon: "👑",
   },
   {
     name: "Kavya",
     text: "The engagement ring from LUMIÈRE made the proposal perfect. The brilliance and sparkle caught everyone's attention. Thank you for making our moment magical!",
-    icon: "💍",
   },
   {
     name: "Anisha",
     text: "Outstanding customer service and breathtaking jewelry. The pearl bracelet I ordered arrived beautifully packaged and fits perfectly. LUMIÈRE is now my go-to for luxury jewelry.",
-    icon: "📿",
   },
 ];
 
@@ -77,27 +71,12 @@ const CustomerStories: React.FC = () => {
                 <p className="text-gray-600 text-sm md:text-base italic text-center mb-6">
                   {review.text}
                 </p>
-                <div className="w-14 h-14 mx-auto rounded-full bg-gradient-to-br from-yellow-400 to-yellow-300 flex items-center justify-center shadow-md text-2xl">
-                  {review.icon}
-                </div>
+                
               </div>
             ))}
           </div>
         </div>
 
-        {/* Controls */}
-        <div className="flex justify-center gap-3 mt-10">
-          {Array(4)
-            .fill(0)
-            .map((_, i) => (
-              <button
-                key={i}
-                className={`w-3 h-3 rounded-full ${
-                  i === 0 ? "bg-yellow-400" : "bg-gray-300"
-                }`}
-              />
-            ))}
-        </div>
       </div>
 
       {/* Scroll Animation */}
