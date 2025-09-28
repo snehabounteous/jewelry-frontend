@@ -121,7 +121,7 @@ export default function CartPage() {
                             alt={item.name} 
                             width={96} 
                             height={96} 
-                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" 
+                            className="w-full h-full object-fit group-hover:scale-110 transition-transform duration-300" 
                           />
                         </div>
                         <div className="absolute -top-1 -right-1">
@@ -268,6 +268,7 @@ export default function CartPage() {
                   
                   <Button 
                     variant="outline" 
+                    onClick={()=>router.push("/products")}
                     className="w-full border-2 font-medium hover:bg-opacity-10"
                     style={{ 
                       borderColor: 'var(--color-highlight)', 

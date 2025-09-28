@@ -37,7 +37,15 @@ export default function CategoryClientPage({ categoryId }: { categoryId: string 
     const fetchProducts = async () => {
       try {
         const res = await clientApi.get(`/products/category/${categoryId}`);
-        setProducts(res.data ?? []);
+        const mappedProducts = (res.data ?? []).map((p: any) => ({
+          ...p,
+          price: Number(p.price), // convert price string to number if needed
+          rating: p.reviews?.length
+            ? p.reviews.reduce((sum: number, r: any) => sum + r.rating, 0) / p.reviews.length
+            : 0,
+          reviews: p.reviews?.length ?? 0, // number of reviews
+        }));
+        setProducts(mappedProducts);
       } catch (err) {
         console.error("Error fetching products by category:", err);
         setProducts([]);
@@ -45,6 +53,7 @@ export default function CategoryClientPage({ categoryId }: { categoryId: string 
         setLoading(false);
       }
     };
+
     fetchProducts();
   }, [categoryId]);
 

@@ -6,6 +6,7 @@ import {
   useElements,
   useStripe,
 } from "@stripe/react-stripe-js";
+import { PaymentIntent } from "@stripe/stripe-js";
 
 const stripePromise = loadStripe("pk_test_51SBJ1cDqgelkcfWY087CKL3nYNFT01JSr12Nth17ljy4w3ZMBQu4YK8XeTO5fHhe3WYmexypAxTixj1ookfLO6hp009dAN9yAV");
 
@@ -13,9 +14,10 @@ const API_BASE = "http://localhost:4000/api/v1";
 
 type CheckoutInnerProps = {
   clientSecret: string;
+  onPaymentSuccess?: (paymentIntent: PaymentIntent) => void | Promise<void>;
 };
 
-function CheckoutInner({ clientSecret }: CheckoutInnerProps) {
+function CheckoutInner({ clientSecret, onPaymentSuccess }: CheckoutInnerProps) {
   const stripe = useStripe();
   const elements = useElements();
 
@@ -29,23 +31,30 @@ function CheckoutInner({ clientSecret }: CheckoutInnerProps) {
     setLoading(true);
     setStatus("Confirming payment…");
 
-    const { error, paymentIntent } = await stripe.confirmPayment({
-      elements,
-      clientSecret,
-      confirmParams: {
-        // Not used in this demo (no redirect flow), but good to set:
-        return_url: window.location.href,
-      },
-      redirect: "if_required",
-    });
+    try {
+      await elements.submit();
 
-    if (error) {
-      setStatus(`❌ ${error.message ?? "Payment failed"}`);
-    } else {
-      setStatus(`✅ Status: ${paymentIntent?.status}`);
+      const { error, paymentIntent } = await stripe.confirmPayment({
+        elements,
+        clientSecret,
+        confirmParams: { return_url: window.location.href },
+        redirect: "if_required",
+      });
+
+      if (error) {
+        setStatus(`❌ ${error.message ?? "Payment failed"}`);
+      } else {
+        setStatus(`✅ Payment ${paymentIntent?.status}`);
+
+        if (paymentIntent && onPaymentSuccess) {
+          await onPaymentSuccess(paymentIntent);
+        }
+      }
+    } catch (err: any) {
+      setStatus(`❌ ${err.message || "Payment failed"}`);
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   return (
@@ -63,21 +72,24 @@ function CheckoutInner({ clientSecret }: CheckoutInnerProps) {
       >
         {loading ? "Processing…" : "Pay"}
       </button>
-      {status && (
-        <div style={{ marginTop: 12, whiteSpace: "pre-wrap" }}>{status}</div>
-      )}
+      {status && <div style={{ marginTop: 12, whiteSpace: "pre-wrap" }}>{status}</div>}
     </form>
   );
 }
 
+
 type StripeCheckoutProps = {
   amountCents: number;
   currency?: string;
+  onPaymentSuccess?: (paymentIntent: PaymentIntent) => void | Promise<void>;
 };
+
+
 
 const StripeCheckout: React.FC<StripeCheckoutProps> = ({
   amountCents,
   currency = "usd",
+  onPaymentSuccess,
 }) => {
   const [clientSecret, setClientSecret] = useState<string>("");
   console.log("inside stripe")
@@ -126,7 +138,7 @@ useEffect(() => {
 
   return (
     <Elements stripe={stripePromise} options={options}>
-      <CheckoutInner clientSecret={clientSecret} />
+      <CheckoutInner clientSecret={clientSecret} onPaymentSuccess={onPaymentSuccess}/>
     </Elements>
   );
 };

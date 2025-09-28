@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useCart } from "@/store/useCart";
 import { clientApi } from "@/utils/axios";
 import { toast } from "sonner";
@@ -22,6 +22,9 @@ import { useRouter } from "next/navigation";
 import { useForm, Controller } from "react-hook-form";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
+import StripeCheckout from "@/components/StripeCheckout";
+import { createRoot } from "react-dom/client";
+import { PaymentIntent } from "@stripe/stripe-js";
 
 // ✅ Validation schema
 const addressSchema = yup.object().shape({
@@ -57,6 +60,7 @@ type ShippingOption = {
 };
 
 const CheckoutPage = () => {
+  const stripeRef = useRef<HTMLDivElement>(null);
   const { cart, fetchCart, clearCart } = useCart();
   const router = useRouter();
 
@@ -77,7 +81,12 @@ const CheckoutPage = () => {
   ]);
 
   // ✅ React Hook Form
-  const { control, handleSubmit, formState: { errors }, reset } = useForm({
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+    reset,
+  } = useForm({
     defaultValues: {
       first_name: "",
       last_name: "",
@@ -147,34 +156,76 @@ const CheckoutPage = () => {
   // ✅ Place order handler
   const handlePlaceOrderForm = handleSubmit(async (data) => {
     try {
-      const payload: any = { shippingMethod, shippingCost };
+      // Calculate total in cents
+      const amountCents = total * 100;
 
-      if (showNewAddressForm) {
-        payload.contact = {
-          firstName: data.first_name,
-          lastName: data.last_name,
-          email: data.email,
-          phone: data.phone,
-        };
-        payload.shipping = {
-          address: data.street_address,
-          city: data.city,
-          state: data.state,
-          zip: data.zip,
-          country: data.country,
-        };
-        payload.setDefault = setAsDefault;
-      } else if (selectedAddress) {
-        payload.addressId = selectedAddress.id;
-      }
+      // Dynamically import StripeCheckout (optional)
+      const { default: StripeCheckout } = await import("@/components/StripeCheckout");
 
-      await clientApi.post("/order/place", payload);
-      toast.success("Order placed successfully!");
-      await clearCart();
-      router.push("/orders");
-    } catch (err: any) {
+      if (!stripeRef.current) return;
+
+      // Payment success handler
+      const onPaymentSuccess = async (paymentIntent: PaymentIntent) => {
+        try {
+          const paymentMethodId =
+            typeof paymentIntent.payment_method === "string"
+              ? paymentIntent.payment_method
+              : (paymentIntent.payment_method?.id ?? "unknown");
+
+          const payload: any = { shippingMethod, shippingCost };
+
+          if (showNewAddressForm) {
+            payload.contact = {
+              firstName: data.first_name,
+              lastName: data.last_name,
+              email: data.email,
+              phone: data.phone,
+            };
+            payload.shipping = {
+              address: data.street_address,
+              city: data.city,
+              state: data.state,
+              zip: data.zip,
+              country: data.country,
+            };
+            payload.setDefault = setAsDefault;
+          } else if (selectedAddress) {
+            payload.addressId = selectedAddress.id;
+          }
+
+          payload.payment = {
+            id: paymentIntent.id,
+            method: paymentMethodId,
+            amount: paymentIntent.amount,
+            status: paymentIntent.status,
+            currency: paymentIntent.currency,
+          };
+
+          const res = await clientApi.post("/order/place", payload);
+
+          toast.success("Order placed successfully!");
+          await clearCart();
+          const { order_id, total_amount } = res.data;
+          router.push(`/order-success?orderId=${order_id}&total=${total_amount}`);
+        } catch (err: any) {
+          toast.error(err?.response?.data?.message || "Failed to place order");
+        } finally {
+          root.unmount(); // remove StripeCheckout after payment
+        }
+      };
+
+      // Render StripeCheckout inside the existing ref container
+      const root = createRoot(stripeRef.current);
+      root.render(
+        <StripeCheckout
+          amountCents={amountCents}
+          currency="usd"
+          onPaymentSuccess={onPaymentSuccess}
+        />
+      );
+    } catch (err) {
       console.error(err);
-      toast.error(err?.response?.data?.message || "Failed to place order");
+      toast.error("Failed to initialize payment");
     }
   });
 
@@ -224,7 +275,8 @@ const CheckoutPage = () => {
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value={a.id} id={a.id} />
                         <Label htmlFor={a.id}>
-                          {a.first_name} {a.last_name}, {a.street_address}, {a.city}, {a.state}, {a.zip}, {a.country}
+                          {a.first_name} {a.last_name}, {a.street_address}, {a.city}, {a.state},{" "}
+                          {a.zip}, {a.country}
                         </Label>
                       </div>
                       {a.is_default && <Badge>Default</Badge>}
@@ -252,7 +304,9 @@ const CheckoutPage = () => {
                     render={({ field }) => (
                       <>
                         <Input placeholder="First Name" {...field} />
-                        {errors.first_name && <p className="text-red-500 text-xs">{errors.first_name.message}</p>}
+                        {errors.first_name && (
+                          <p className="text-red-500 text-xs">{errors.first_name.message}</p>
+                        )}
                       </>
                     )}
                   />
@@ -262,7 +316,9 @@ const CheckoutPage = () => {
                     render={({ field }) => (
                       <>
                         <Input placeholder="Last Name" {...field} />
-                        {errors.last_name && <p className="text-red-500 text-xs">{errors.last_name.message}</p>}
+                        {errors.last_name && (
+                          <p className="text-red-500 text-xs">{errors.last_name.message}</p>
+                        )}
                       </>
                     )}
                   />
@@ -274,7 +330,9 @@ const CheckoutPage = () => {
                   render={({ field }) => (
                     <>
                       <Input placeholder="Email" {...field} />
-                      {errors.email && <p className="text-red-500 text-xs">{errors.email.message}</p>}
+                      {errors.email && (
+                        <p className="text-red-500 text-xs">{errors.email.message}</p>
+                      )}
                     </>
                   )}
                 />
@@ -285,7 +343,9 @@ const CheckoutPage = () => {
                   render={({ field }) => (
                     <>
                       <Input placeholder="Phone" {...field} />
-                      {errors.phone && <p className="text-red-500 text-xs">{errors.phone.message}</p>}
+                      {errors.phone && (
+                        <p className="text-red-500 text-xs">{errors.phone.message}</p>
+                      )}
                     </>
                   )}
                 />
@@ -296,7 +356,9 @@ const CheckoutPage = () => {
                   render={({ field }) => (
                     <>
                       <Input placeholder="Street Address" {...field} />
-                      {errors.street_address && <p className="text-red-500 text-xs">{errors.street_address.message}</p>}
+                      {errors.street_address && (
+                        <p className="text-red-500 text-xs">{errors.street_address.message}</p>
+                      )}
                     </>
                   )}
                 />
@@ -308,7 +370,9 @@ const CheckoutPage = () => {
                     render={({ field }) => (
                       <>
                         <Input placeholder="City" {...field} />
-                        {errors.city && <p className="text-red-500 text-xs">{errors.city.message}</p>}
+                        {errors.city && (
+                          <p className="text-red-500 text-xs">{errors.city.message}</p>
+                        )}
                       </>
                     )}
                   />
@@ -318,17 +382,10 @@ const CheckoutPage = () => {
                     control={control}
                     render={({ field }) => (
                       <>
-                        <Select {...field}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="State" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="CA">California</SelectItem>
-                            <SelectItem value="NY">New York</SelectItem>
-                            <SelectItem value="TX">Texas</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        {errors.state && <p className="text-red-500 text-xs">{errors.state.message}</p>}
+                        <Input placeholder="State" {...field} />
+                        {errors.state && (
+                          <p className="text-red-500 text-xs">{errors.state.message}</p>
+                        )}
                       </>
                     )}
                   />
@@ -350,16 +407,10 @@ const CheckoutPage = () => {
                   control={control}
                   render={({ field }) => (
                     <>
-                      <Select {...field}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Country" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="US">United States</SelectItem>
-                          <SelectItem value="CA">Canada</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      {errors.country && <p className="text-red-500 text-xs">{errors.country.message}</p>}
+                      <Input placeholder="Country" {...field} />
+                      {errors.country && (
+                        <p className="text-red-500 text-xs">{errors.country.message}</p>
+                      )}
                     </>
                   )}
                 />
@@ -418,7 +469,9 @@ const CheckoutPage = () => {
             <CardContent className="space-y-2">
               {cart.map((item) => (
                 <div key={item.id} className="flex justify-between">
-                  <span>{item.name} x {item.quantity}</span>
+                  <span>
+                    {item.name} x {item.quantity}
+                  </span>
                   <span>₹{item.price.toLocaleString()}</span>
                 </div>
               ))}
@@ -443,9 +496,10 @@ const CheckoutPage = () => {
               <div className="flex items-center justify-center space-x-2 text-xs text-gray-500 mt-2">
                 <Lock className="w-4 h-4" /> Secure checkout
               </div>
+              <div ref={stripeRef}></div>
               <Button
                 onClick={handlePlaceOrderForm}
-                className="w-full mt-4 bg-yellow-600 text-white"
+                className="w-full mt-4 bg-[var(--color-accent)] text-white"
               >
                 Place Order
               </Button>

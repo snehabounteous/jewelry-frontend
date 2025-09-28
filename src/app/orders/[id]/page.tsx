@@ -80,15 +80,15 @@ export default function OrderDetailsPage({ params }: Props) {
         <CardContent className="space-y-3 text-sm">
           <div className="flex justify-between">
             <span>Status</span>
-            <span>{order.status}</span>
+            <span>{order.status || "N/A"}</span>
           </div>
           <div className="flex justify-between">
             <span>Total</span>
-            <span>₹{order.total_amount}</span>
+            <span>₹{order.total_amount || "0"}</span>
           </div>
           <div className="flex justify-between">
             <span>Shipping Cost</span>
-            <span>₹{order.shipping.cost}</span>
+            <span>₹{order.shipping?.cost ?? "0"}</span>
           </div>
         </CardContent>
       </Card>
@@ -100,10 +100,10 @@ export default function OrderDetailsPage({ params }: Props) {
         </CardHeader>
         <CardContent className="space-y-1 text-sm">
           <p>
-            {order.contact.firstName} {order.contact.lastName}
+            {order.contact?.firstName ?? "N/A"} {order.contact?.lastName ?? ""}
           </p>
-          <p>{order.contact.email}</p>
-          <p>{order.contact.phone}</p>
+          <p>{order.contact?.email ?? "N/A"}</p>
+          <p>{order.contact?.phone ?? "N/A"}</p>
         </CardContent>
       </Card>
 
@@ -113,24 +113,12 @@ export default function OrderDetailsPage({ params }: Props) {
           <CardTitle>Shipping Address</CardTitle>
         </CardHeader>
         <CardContent className="text-sm">
-          <p>{order.shipping.address}</p>
+          <p>{order.shipping?.address ?? "N/A"}</p>
           <p>
-            {order.shipping.city}, {order.shipping.state} {order.shipping.zip}
+            {order.shipping?.city ?? ""}, {order.shipping?.state ?? ""} {order.shipping?.zip ?? ""}
           </p>
-          <p>{order.shipping.country}</p>
-          <p className="mt-2">Method: {order.shipping.method}</p>
-        </CardContent>
-      </Card>
-
-      {/* Items */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Items</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {order.items.map((item) => (
-            <OrderItemRow key={item.id} item={item} />
-          ))}
+          <p>{order.shipping?.country ?? ""}</p>
+          <p className="mt-2">Method: {order.shipping?.method ?? "N/A"}</p>
         </CardContent>
       </Card>
     </div>
