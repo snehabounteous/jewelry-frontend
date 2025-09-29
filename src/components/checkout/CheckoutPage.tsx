@@ -94,7 +94,7 @@ const CheckoutPage = () => {
   const [, setLoadingAddresses] = useState(true);
   const [showStripe, setShowStripe] = useState(false);
   const [stripeAmount, setStripeAmount] = useState(0);
-  const [paymentData, setPaymentData] = useState<any>(null); // store form data for later
+  const [paymentData, setPaymentData] = useState<PaymentInfo | null>(null); // store form data for later
 
   // Shipping
   const [shippingMethod, setShippingMethod] = useState<string>("standard");
