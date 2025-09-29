@@ -17,8 +17,7 @@ import { useRouter } from "next/navigation";
 import { useForm, Controller } from "react-hook-form";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { createRoot } from "react-dom/client";
-import { PaymentIntent } from "@stripe/stripe-js";
+import StripeCheckout from "../StripeCheckout";
 
 // ✅ Validation schema
 const addressSchema = yup.object().shape({
@@ -93,10 +92,13 @@ const CheckoutPage = () => {
   const [showNewAddressForm, setShowNewAddressForm] = useState(false);
   const [setAsDefault, setSetAsDefault] = useState(false);
   const [, setLoadingAddresses] = useState(true);
+  const [showStripe, setShowStripe] = useState(false);
+  const [stripeAmount, setStripeAmount] = useState(0);
+  const [paymentData, setPaymentData] = useState<any>(null); // store form data for later
 
   // Shipping
   const [shippingMethod, setShippingMethod] = useState<string>("standard");
-  const [shippingOptions, ] = useState<ShippingOption[]>([
+  const [shippingOptions] = useState<ShippingOption[]>([
     { id: "standard", name: "Standard Shipping", cost: 0 },
     { id: "express", name: "Express Shipping", cost: 99 },
     { id: "overnight", name: "Overnight Shipping", cost: 199 },
@@ -123,44 +125,43 @@ const CheckoutPage = () => {
     resolver: yupResolver(addressSchema),
   });
 
-  
   useEffect(() => {
     const fetchAddresses = async () => {
-    try {
-      setLoadingAddresses(true);
-      const res = await clientApi.get("/address"); // make sure endpoint matches backend
-      const allAddresses: Address[] = res.data;
-      setAddresses(allAddresses);
+      try {
+        setLoadingAddresses(true);
+        const res = await clientApi.get("/address"); // make sure endpoint matches backend
+        const allAddresses: Address[] = res.data;
+        setAddresses(allAddresses);
 
-      if (allAddresses.length === 0) {
-        setShowNewAddressForm(true);
-      } else {
-        const defaultAddr = allAddresses.find((a) => a.is_default) || allAddresses[0];
-        setSelectedAddress(defaultAddr || null);
-        setSelectedAddressId(defaultAddr?.id || null);
+        if (allAddresses.length === 0) {
+          setShowNewAddressForm(true);
+        } else {
+          const defaultAddr = allAddresses.find((a) => a.is_default) || allAddresses[0];
+          setSelectedAddress(defaultAddr || null);
+          setSelectedAddressId(defaultAddr?.id || null);
 
-        // Prefill form if editing default
-        if (defaultAddr) {
-          reset({
-            first_name: defaultAddr.first_name,
-            last_name: defaultAddr.last_name,
-            email: defaultAddr.email,
-            phone: defaultAddr.phone,
-            street_address: defaultAddr.street_address,
-            city: defaultAddr.city,
-            state: defaultAddr.state,
-            zip: defaultAddr.zip,
-            country: defaultAddr.country,
-          });
+          // Prefill form if editing default
+          if (defaultAddr) {
+            reset({
+              first_name: defaultAddr.first_name,
+              last_name: defaultAddr.last_name,
+              email: defaultAddr.email,
+              phone: defaultAddr.phone,
+              street_address: defaultAddr.street_address,
+              city: defaultAddr.city,
+              state: defaultAddr.state,
+              zip: defaultAddr.zip,
+              country: defaultAddr.country,
+            });
+          }
         }
+      } catch (err) {
+        console.error(err);
+        toast.error("Failed to load addresses");
+      } finally {
+        setLoadingAddresses(false);
       }
-    } catch (err) {
-      console.error(err);
-      toast.error("Failed to load addresses");
-    } finally {
-      setLoadingAddresses(false);
-    }
-  };
+    };
     fetchCart();
     fetchAddresses();
   }, [fetchCart, reset]);
@@ -174,96 +175,11 @@ const CheckoutPage = () => {
   const total = subtotal + shippingCost + tax;
 
   // ✅ Place order handler
-  const handlePlaceOrderForm = handleSubmit(async (data) => {
-    try {
-      // Calculate total in cents
-      const amountCents = total * 100;
-
-      // Dynamically import StripeCheckout (optional)
-      const { default: StripeCheckout } = await import("@/components/StripeCheckout");
-
-      if (!stripeRef.current) return;
-
-      // Payment success handler
-      const onPaymentSuccess = async (paymentIntent: PaymentIntent) => {
-        try {
-          const paymentMethodId =
-            typeof paymentIntent.payment_method === "string"
-              ? paymentIntent.payment_method
-              : (paymentIntent.payment_method?.id ?? "unknown");
-
-          const payload: OrderPayload = {
-            shippingMethod,
-            shippingCost,
-            payment: {
-              id: paymentIntent.id,
-              method: paymentMethodId,
-              amount: paymentIntent.amount,
-              status: paymentIntent.status,
-              currency: paymentIntent.currency,
-            },
-          };
-
-          if (showNewAddressForm) {
-            payload.contact = {
-              firstName: data.first_name,
-              lastName: data.last_name,
-              email: data.email,
-              phone: data.phone,
-            };
-            payload.shipping = {
-              address: data.street_address,
-              city: data.city,
-              state: data.state,
-              zip: data.zip,
-              country: data.country,
-            };
-            payload.setDefault = setAsDefault;
-          } else if (selectedAddress) {
-            payload.addressId = selectedAddress.id;
-          }
-
-          payload.payment = {
-            id: paymentIntent.id,
-            method: paymentMethodId,
-            amount: paymentIntent.amount,
-            status: paymentIntent.status,
-            currency: paymentIntent.currency,
-          };
-
-          const res = await clientApi.post("/order/place", payload);
-
-          toast.success("Order placed successfully!");
-          await clearCart();
-          const { order_id, total_amount } = res.data;
-          router.push(`/order-success?orderId=${order_id}&total=${total_amount}`);
-        } catch (err: unknown) {
-          let message = "Failed to place order";
-
-          if (err instanceof AxiosError) {
-            message = err.response?.data?.message ?? message;
-          }
-
-          toast.error(message);
-        } finally {
-          root.unmount(); // remove StripeCheckout after payment
-        }
-      };
-
-      // Render StripeCheckout inside the existing ref container
-      const root = createRoot(stripeRef.current);
-      root.render(
-        <StripeCheckout
-          amountCents={amountCents}
-          currency="usd"
-          onPaymentSuccess={onPaymentSuccess}
-        />
-      );
-    } catch (err) {
-      console.error(err);
-      toast.error("Failed to initialize payment");
-    }
-  });
+  const handlePlaceOrderForm = handleSubmit((data) => {
+  setStripeAmount(total * 100); // total in cents
+  setPaymentData(data); // save form data for order payload
+  setShowStripe(true); // show StripeCheckout
+});
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -532,7 +448,71 @@ const CheckoutPage = () => {
               <div className="flex items-center justify-center space-x-2 text-xs text-gray-500 mt-2">
                 <Lock className="w-4 h-4" /> Secure checkout
               </div>
-              <div ref={stripeRef}></div>
+              <div>
+                {showStripe && paymentData && (
+                  <StripeCheckout
+                    amountCents={stripeAmount}
+                    currency="usd"
+                    onPaymentSuccess={async (paymentIntent) => {
+                      try {
+                        const paymentMethodId =
+                          typeof paymentIntent.payment_method === "string"
+                            ? paymentIntent.payment_method
+                            : (paymentIntent.payment_method?.id ?? "unknown");
+
+                        const payload: OrderPayload = {
+                          shippingMethod,
+                          shippingCost,
+                          payment: {
+                            id: paymentIntent.id,
+                            method: paymentMethodId,
+                            amount: paymentIntent.amount,
+                            status: paymentIntent.status,
+                            currency: paymentIntent.currency,
+                          },
+                        };
+
+                        if (showNewAddressForm) {
+                          payload.contact = {
+                            firstName: paymentData.first_name,
+                            lastName: paymentData.last_name,
+                            email: paymentData.email,
+                            phone: paymentData.phone,
+                          };
+                          payload.shipping = {
+                            address: paymentData.street_address,
+                            city: paymentData.city,
+                            state: paymentData.state,
+                            zip: paymentData.zip,
+                            country: paymentData.country,
+                          };
+                          payload.setDefault = setAsDefault;
+                        } else if (selectedAddress) {
+                          payload.addressId = selectedAddress.id;
+                        }
+
+                        const res = await clientApi.post("/order/place", payload);
+
+                        toast.success("Order placed successfully!");
+                        await clearCart();
+                        const { order_id, total_amount } = res.data;
+                        router.push(`/order-success?orderId=${order_id}&total=${total_amount}`);
+                      } catch (err: unknown) {
+                        let message = "Failed to place order";
+
+                        if (err instanceof AxiosError) {
+                          message = err.response?.data?.message ?? message;
+                        }
+
+                        toast.error(message);
+                      } finally {
+                        setShowStripe(false); // hide StripeCheckout after payment
+                      }
+                    }}
+                  />
+                )}
+              </div>
+
               <Button
                 onClick={handlePlaceOrderForm}
                 className="w-full mt-4 bg-[var(--color-accent)] text-white"
