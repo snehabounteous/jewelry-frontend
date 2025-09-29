@@ -8,7 +8,6 @@ import image2 from "../../public/images/jewel2.webp";
 import image3 from "../../public/images/jewel3.webp";
 import CategoriesCarousel from "@/components/CategoriesCarousel";
 import MostGiftedCarousel from "@/components/MostGiftedCarousel";
-import { Link } from "lucide-react";
 
 interface HeroSlide {
   id: number;
@@ -68,8 +67,7 @@ const HomePage = async () => {
       <HeroCarousel slides={heroSlides} />
 
       <section className="py-24 px-[5%] mx-auto">
-        <Link
-          href="/products"
+        <div
           className="block text-center mb-16 cursor-pointer hover:opacity-80 transition-opacity"
         >
           <h2 className="text-4xl md:text-6xl font-light text-gray-900 mb-4">Our Collections</h2>
@@ -77,7 +75,7 @@ const HomePage = async () => {
             Explore our carefully curated selection of fine jewelry, each piece designed to
             complement your unique style and celebrate life&apos;s precious moments.
           </p>
-        </Link>
+        </div>
 
         {categories.length > 0 ? (
           <CategoriesCarousel categories={categories} />
@@ -89,14 +87,13 @@ const HomePage = async () => {
       </section>
 
       <section className="py-24 px-[5%] mx-auto">
-        <Link
-          href="/products"
+        <div
           className="block text-center mb-16 cursor-pointer hover:opacity-80 transition-opacity"
         >
           <h2 className="text-4xl md:text-6xl font-light text-gray-900 mb-4">
             Checkout Our Earring Collections
           </h2>
-        </Link>
+        </div>
 
         <MostGiftedCarousel />
       </section>
