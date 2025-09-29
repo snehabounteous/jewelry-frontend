@@ -94,8 +94,17 @@ const CheckoutPage = () => {
   const [, setLoadingAddresses] = useState(true);
   const [showStripe, setShowStripe] = useState(false);
   const [stripeAmount, setStripeAmount] = useState(0);
-  const [paymentData, setPaymentData] = useState<PaymentInfo | null>(null); // store form data for later
-
+  const [paymentData, setPaymentData] = useState<{
+    first_name: string;
+    last_name: string;
+    email: string;
+    phone: string;
+    street_address: string;
+    city: string;
+    state: string;
+    zip: string;
+    country: string;
+  } | null>(null);
   // Shipping
   const [shippingMethod, setShippingMethod] = useState<string>("standard");
   const [shippingOptions] = useState<ShippingOption[]>([
@@ -176,10 +185,10 @@ const CheckoutPage = () => {
 
   // ✅ Place order handler
   const handlePlaceOrderForm = handleSubmit((data) => {
-  setStripeAmount(total * 100); // total in cents
-  setPaymentData(data); // save form data for order payload
-  setShowStripe(true); // show StripeCheckout
-});
+    setStripeAmount(total * 100); // total in cents
+    setPaymentData(data); // save form data for order payload
+    setShowStripe(true); // show StripeCheckout
+  });
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
