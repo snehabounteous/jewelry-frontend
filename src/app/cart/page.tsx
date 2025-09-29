@@ -160,7 +160,6 @@ export default function CartPage() {
                                 onValueChange={(value) => {
                                   // Since we don't have updateQuantity, we'll use reduceQuantity for now
                                   // You may want to implement updateQuantity in your store later
-                                  console.log(`Update quantity to ${value} for item ${item.id}`);
                                 }}
                               >
                                 <SelectTrigger className="w-20 h-9" style={{ borderRadius: 'var(--radius-sm)', borderColor: 'var(--color-highlight)' }}>

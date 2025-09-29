@@ -97,12 +97,10 @@ const StripeCheckout: React.FC<StripeCheckoutProps> = ({
   onPaymentSuccess,
 }) => {
   const [clientSecret, setClientSecret] = useState<string>("");
-  console.log("inside stripe")
 
 useEffect(() => {
   (async () => {
     try {
-      console.log("▶ useEffect fired with", { amountCents, currency });
 
       const res = await fetch(`${API_BASE}/stripe/create-payment-intent`, {
         method: "POST",
@@ -110,10 +108,8 @@ useEffect(() => {
         body: JSON.stringify({ amount: amountCents, currency }),
       });
 
-      console.log("▶ fetch response status:", res.status);
 
       const data = await res.json();
-      console.log("▶ payment intent response:", data);
 
       setClientSecret(data.clientSecret);
     } catch (err) {
@@ -135,7 +131,6 @@ useEffect(() => {
     [clientSecret]
   );
 
-  console.log(options, "options")
 
   if (!options) {
     return <p>Creating PaymentIntent…</p>;

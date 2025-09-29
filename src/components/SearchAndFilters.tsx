@@ -52,8 +52,6 @@ export default function SearchAndFilters({
   useEffect(() => {
   const fetchCategories = async () => {
     try {
-      console.log("ENV URL:", process.env.NEXT_PUBLIC_API_URL);
-      console.log("Final hitting URL:", `${process.env.NEXT_PUBLIC_API_URL}/categories`);
 
       const res = await clientApi.get("/categories");
       setCategories(res.data);

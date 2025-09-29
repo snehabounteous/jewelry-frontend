@@ -13,7 +13,6 @@ interface ProductListProps {
 }
 
 export default function ProductList({ initialProducts }: ProductListProps) {
-  // console.log("Rendering ProductList with initialProducts:", initialProducts);
   const [products, setProducts] = useState<Product[]>(initialProducts);
   const [searchTerm, setSearchTerm] = useState("");
   const [minPrice, setMinPrice] = useState<number | undefined>();
