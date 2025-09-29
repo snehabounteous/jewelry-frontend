@@ -9,8 +9,8 @@ import {
 import { PaymentIntent } from "@stripe/stripe-js";
 
 const stripePromise = loadStripe("pk_test_51SBJ1cDqgelkcfWY087CKL3nYNFT01JSr12Nth17ljy4w3ZMBQu4YK8XeTO5fHhe3WYmexypAxTixj1ookfLO6hp009dAN9yAV");
-
-const API_BASE = "http://localhost:4000/api/v1";
+  
+const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 type CheckoutInnerProps = {
   clientSecret: string;
